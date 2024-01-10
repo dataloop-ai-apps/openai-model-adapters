@@ -3,9 +3,9 @@ import dtlpy as dl
 from adapters.chat_completion import ModelAdapter
 
 
-def deploy():
+def deploy(project_name):
     dl.setenv('prod')
-    project = dl.projects.get(project_name='ShadiProject')
+    project = dl.projects.get(project_name=project_name)
     metadata = dl.Package.get_ml_metadata(cls=ModelAdapter,
                                           default_configuration={}
                                           )
@@ -13,10 +13,7 @@ def deploy():
     package = project.packages.push(package_name='openai-adapter',
                                     ignore_sanity_check=True,
                                     src_path=os.getcwd(),
-                                    # scope='public',
                                     package_type='ml',
-                                    # codebase=dl.GitCodebase(git_url='https://github.com/dataloop-ai/openai-model-adapters',
-                                    #                         git_tag='1.0.0'),
                                     modules=[modules],
                                     service_config={
                                         'runtime': dl.KubernetesRuntime(pod_type=dl.INSTANCE_CATALOG_HIGHMEM_XS,
@@ -26,10 +23,6 @@ def deploy():
                                                                             max_replicas=1),
                                                                         concurrency=1).to_json()},
                                     metadata=metadata)
-    # s = package.services.list().items[0]
-    # s.package_revision = package.version
-    # s.update(True)
-    # print("Package created!")
 
     model = package.models.create(model_name='openai-gpt-3.5-turbo',
                                   description='OpenAI API call for gpt-3.5-turbo ',
@@ -41,11 +34,9 @@ def deploy():
                                   project_id=package.project.id
                                   )
 
-    # model.deploy()
-    # s = dl.services.get(service_id='659e9d1818fe7e17d0879ef3')
-    # s.runtime.runner_image = 'python:3.8'
-    # s.update()
+    print(f'Model ID: {model.id}, Model Name: {model.name}')
 
 
 if __name__ == '__main__':
-    deploy()
+    project_name = ''
+    deploy(project_name=project_name)

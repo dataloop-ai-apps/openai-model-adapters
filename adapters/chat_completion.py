@@ -85,5 +85,4 @@ def predict_model():
 
 
 # if __name__ == '__main__':
-    # deploy()
     # predict_model()
