@@ -9,13 +9,17 @@ logger = logging.getLogger('openai-adapter')
 
 @dl.Package.decorators.module(name='model-adapter',
                               description='Model Adapter for OpenAI models',
-                              init_inputs={'model_entity': dl.Model})
+                              init_inputs={'model_entity': dl.Model,
+                                           'openai_key_name': dl.PACKAGE_INPUT_TYPE_STRING})
 class ModelAdapter(dl.BaseModelAdapter):
+    def __init__(self, model_entity: dl.Model, openai_key_name):
+        self.openai_key_name = openai_key_name
+        super().__init__(model_entity=model_entity)
 
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
-        key = os.environ.get('OPENAI_API_KEY')
+        key = os.environ.get(self.openai_key_name)
         if key is None:
             raise ValueError("Cannot find a key for OPENAI")
         openai.api_key = key
