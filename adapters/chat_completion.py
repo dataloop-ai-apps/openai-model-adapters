@@ -10,9 +10,10 @@ logger = logging.getLogger('openai-adapter')
 @dl.Package.decorators.module(name='model-adapter',
                               description='Model Adapter for OpenAI models',
                               init_inputs={'model_entity': dl.Model,
-                                           'openai_key_name': dl.PACKAGE_INPUT_TYPE_STRING})
+                                           'openai_key_name': "String"})
 class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model, openai_key_name):
+        print(openai_key_name)
         self.openai_key_name = openai_key_name
         super().__init__(model_entity=model_entity)
 
@@ -20,6 +21,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         """ Load configuration for OpenAI adapter
         """
         key = os.environ.get(self.openai_key_name)
+        print(key)
         if key is None:
             raise ValueError("Cannot find a key for OPENAI")
         openai.api_key = key
@@ -79,50 +81,11 @@ def examples(self):
     )
 
 
-def deploy():
-    dl.setenv('prod')
-    project = dl.projects.get(project_name='CVPR 2023 demo')
-    metadata = dl.Package.get_ml_metadata(cls=ModelAdapter,
-                                          default_configuration={}
-                                          )
-    modules = dl.PackageModule.from_entry_point(entry_point='adapters/chat_completion.py')
-    package = project.packages.push(package_name='openai-adapter',
-                                    ignore_sanity_check=True,
-                                    src_path=os.getcwd(),
-                                    # scope='public',
-                                    package_type='ml',
-                                    # codebase=dl.GitCodebase(git_url='https://github.com/dataloop-ai/openai-model-adapters',
-                                    #                         git_tag='1.0.0'),
-                                    modules=[modules],
-                                    service_config={
-                                        'runtime': dl.KubernetesRuntime(pod_type=dl.INSTANCE_CATALOG_HIGHMEM_XS,
-                                                                        runner_image='python:3.8',
-                                                                        autoscaler=dl.KubernetesRabbitmqAutoscaler(
-                                                                            min_replicas=1,
-                                                                            max_replicas=1),
-                                                                        concurrency=1).to_json()},
-                                    metadata=metadata)
-    s = package.services.list().items[0]
-    s.package_revision = package.version
-    s.update(True)
-    print("Package created!")
-
-    model = package.models.create(model_name='openai-gpt-3.5-turbo',
-                                  description='OpenAI API call for gpt-3.5-turbo ',
-                                  tags=['llm', 'openai', "chatgpt"],
-                                  dataset_id=None,
-                                  status='trained',
-                                  scope='project',
-                                  configuration={},
-                                  project_id=package.project.id
-                                  )
-
-    model.deploy()
-    s = dl.services.get(service_id='648f741e2bcb3e2f232be84f')
-    s.runtime.runner_image = 'python:3.8'
-    s.update()
-
-
 def predict_model():
-    model = dl.models.get(model_id='648f740f7a887fa801b092ea')
-    model.predict(item_ids=['648ed83b30a06d1dd16e31d5'])
+    model = dl.models.get(model_id='659ed92c20fe9b8661ed3434')
+    model.predict(item_ids=['659e9eb0c674fe27846b8e78'])
+
+
+# if __name__ == '__main__':
+    # deploy()
+    # predict_model()
