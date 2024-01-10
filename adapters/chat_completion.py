@@ -13,7 +13,6 @@ logger = logging.getLogger('openai-adapter')
                                            'openai_key_name': "String"})
 class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model, openai_key_name):
-        print(openai_key_name)
         self.openai_key_name = openai_key_name
         super().__init__(model_entity=model_entity)
 
@@ -21,7 +20,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         """ Load configuration for OpenAI adapter
         """
         key = os.environ.get(self.openai_key_name)
-        print(key)
         if key is None:
             raise ValueError("Cannot find a key for OPENAI")
         openai.api_key = key
