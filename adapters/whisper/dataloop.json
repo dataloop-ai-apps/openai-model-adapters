@@ -1,7 +1,7 @@
 {
   "name": "whisper",
   "displayName": "Whisper",
-  "version": "v0.0.1",
+  "version": "v0.0.2",
   "scope": "public",
   "description": "Whisper Model Application",
   "attributes": {
@@ -14,7 +14,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
-    "gitTag": "v0.0.1"
+    "gitTag": "v0.0.2"
   },
   "components": {
     "computeConfigs": [
