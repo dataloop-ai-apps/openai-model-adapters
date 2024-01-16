@@ -1,0 +1,87 @@
+{
+  "name": "whisper",
+  "displayName": "Whisper",
+  "version": "v0.1.0",
+  "scope": "public",
+  "description": "Whisper Model Application",
+  "attributes": {
+    "Provider": "Open AI",
+    "License": "Apache 2.0",
+    "Category": "Model",
+    "NLP": "Translation",
+    "Task Type": "Audio"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
+    "gitTag": "v0.1.0"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "whisper-deploy",
+        "runtime": {
+          "podType": "regular-l",
+          "concurrency": 1,
+          "runnerImage": "dataloopai/whisper-gpu.cuda.11.5.py3.8.pytorch2:1.0.1",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "whisper-module",
+        "entryPoint": "adapters/whisper/whisper.py",
+        "className": "Whisper",
+        "computeConfig": "whisper-deploy",
+        "description": "Whisper Module",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "Whisper Predict Items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "openai-whisper",
+        "moduleName": "whisper-module",
+        "scope": "project",
+        "status": "trained",
+        "configuration": {
+          "max_new_tokens": 128,
+          "chunk_length_s": 30,
+          "batch_size": 16,
+          "model_id": "openai/whisper-large-v3"
+        },
+        "description": "OpenAI Whisper Model",
+        "labels": [
+          "Transcript"
+        ],
+        "inputType": "audio",
+        "outputType": "subtitle"
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 import os
 import dtlpy as dl
-from adapters.chat_completion import ModelAdapter
+from adapters.chat_completion.chat_completion import ModelAdapter
 
 
 def deploy(project_name):
@@ -9,7 +9,7 @@ def deploy(project_name):
     metadata = dl.Package.get_ml_metadata(cls=ModelAdapter,
                                           default_configuration={}
                                           )
-    modules = dl.PackageModule.from_entry_point(entry_point='adapters/chat_completion.py')
+    modules = dl.PackageModule.from_entry_point(entry_point='adapters/chat_completion/chat_completion.py')
     package = project.packages.push(package_name='openai-adapter',
                                     ignore_sanity_check=True,
                                     src_path=os.getcwd(),
