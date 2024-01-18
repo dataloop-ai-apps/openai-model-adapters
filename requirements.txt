@@ -1,0 +1,3 @@
+transformers
+accelerate
+openai==0.28

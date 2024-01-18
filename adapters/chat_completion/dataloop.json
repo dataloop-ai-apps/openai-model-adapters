@@ -1,0 +1,77 @@
+{
+  "name": "chat-completion",
+  "displayName": "Chat Completion",
+  "version": "v0.0.2",
+  "scope": "public",
+  "description": "Chat completion Model Application by Open AI",
+  "attributes": {
+    "Provider": "Open AI",
+    "Category": "Model",
+    "NLP": "Conversational",
+    "Gen AI": "LLM",
+    "Task Type": "Text"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
+    "gitTag": "v0.0.2"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "chat-completion-deploy",
+        "runtime": {
+          "podType": "highmem-xs",
+          "concurrency": 1,
+          "runnerImage": "python:3.8",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "chat-completion-module",
+        "entryPoint": "adapters/chat_completion/chat_completion.py",
+        "className": "ModelAdapter",
+        "computeConfig": "chat-completion-deploy",
+        "description": "Chat completion Module",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "Chat completion API"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "openai-gpt-3.5-turbo",
+        "moduleName": "chat-completion-module",
+        "scope": "project",
+        "status": "trained",
+        "configuration": {},
+        "description": "OpenAI API call for gpt-3.5-turbo"
+      }
+    ]
+  }
+}
