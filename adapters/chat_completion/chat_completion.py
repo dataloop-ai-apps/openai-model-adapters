@@ -69,7 +69,9 @@ def examples(self):
 
     response = openai.Completion.create(
         model="gpt-3.5-turbo",
-        prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman: I'd like to cancel my subscription.\nAI:",
+        prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, "
+               "and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help "
+               "you today?\nHuman: I'd like to cancel my subscription.\nAI:",
         temperature=0.9,
         max_tokens=150,
         top_p=1,
@@ -77,12 +79,3 @@ def examples(self):
         presence_penalty=0.6,
         stop=[" Human:", " AI:"]
     )
-
-
-def predict_model():
-    model = dl.models.get(model_id='659ed92c20fe9b8661ed3434')
-    model.predict(item_ids=['659e9eb0c674fe27846b8e78'])
-
-
-# if __name__ == '__main__':
-    # predict_model()
