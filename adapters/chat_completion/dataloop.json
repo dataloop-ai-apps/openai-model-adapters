@@ -9,7 +9,7 @@
     "Category": "Model",
     "NLP": "Conversational",
     "Gen AI": "LLM",
-    "Task Type": "Text"
+    "Media Type": "Text"
   },
   "codebase": {
     "type": "git",
