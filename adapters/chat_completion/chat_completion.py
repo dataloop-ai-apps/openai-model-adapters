@@ -40,13 +40,15 @@ class ModelAdapter(dl.BaseModelAdapter):
             prompts = buffer["prompts"]
             item_annotations = item.annotations.builder()
             for prompt_key, prompt_content in prompts.items():
-                for question in prompt_content.values():
-                    print(f"User: {question['value']}")
+                for single_prompt in prompt_content:
+                    if not single_prompt.get('mimetype', '') == 'application/text':
+                        continue
+                    print(f"User: {single_prompt['value']}")
                     response = openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",  # gpt-4
                         messages=[
                             {"role": "system", "content": 'You are a helpful assistant who understands data science.'},
-                            {"role": "user", "content": question['value']}
+                            {"role": "user", "content": single_prompt['value']}
                         ])
                     response_content = response["choices"][0]["message"]["content"]
                     print("Response: {}".format(response_content))
@@ -56,8 +58,8 @@ class ModelAdapter(dl.BaseModelAdapter):
                                              "name": "gpt-3.5-turbo",
                                              "confidence": 1.0
                                          })
-            annotations.append(item_annotations)
-        return annotations
+                annotations.append(item_annotations)
+            return annotations
 
 
 def examples(self):
