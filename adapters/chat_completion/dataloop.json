@@ -43,6 +43,10 @@
           {
             "type": "Model",
             "name": "model_entity"
+          },
+          {
+            "type": "String",
+            "name": "openai_key_name"
           }
         ],
         "functions": [
