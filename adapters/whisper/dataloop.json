@@ -47,6 +47,41 @@
         ],
         "functions": [
           {
+            "name": "evaluate_model",
+            "input": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              }
+            ],
+            "displayName": "Evaluate a Model",
+            "displayIcon": "",
+            "description": "Function to evaluate open AI whipser model performance"
+          },
+          {
             "name": "predict_items",
             "input": [
               {
@@ -55,10 +90,41 @@
                 "description": "List of items to run inference on"
               }
             ],
-            "output": [],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "Whisper Predict Items"
+            "description": "Whisper Open AI predict items"
+          },
+          {
+            "name": "predict_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": ""
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+            ],
+            "displayName": "Predict Dataset",
+            "displayIcon": "",
+            "description": "Whisper Open AI Run on Dataset"
           }
         ]
       }
