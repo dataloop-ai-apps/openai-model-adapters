@@ -21,9 +21,9 @@
       {
         "name": "chat-completion-deploy",
         "runtime": {
-          "podType": "highmem-xs",
+          "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "python:3.8",
+          "runnerImage": "python:3.10",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
