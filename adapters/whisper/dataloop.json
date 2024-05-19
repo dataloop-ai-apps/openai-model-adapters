@@ -112,7 +112,7 @@
               {
                 "type": "Dataset",
                 "name": "dataset",
-                "description": ""
+                "description": "Dataloop Dataset Entity"
               },
               {
                 "type": "Json",
@@ -134,7 +134,7 @@
         "name": "openai-whisper",
         "moduleName": "whisper-module",
         "scope": "project",
-        "status": "trained",
+        "status": "pre-trained",
         "configuration": {
           "max_new_tokens": 128,
           "chunk_length_s": 30,
