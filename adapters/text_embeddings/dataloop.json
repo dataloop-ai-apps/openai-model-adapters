@@ -1,14 +1,13 @@
 {
-  "name": "chat-completion",
-  "displayName": "Chat Completion",
+  "name": "text-embeddings",
+  "displayName": "Text Embeddings",
   "version": "0.0.9",
   "scope": "public",
-  "description": "Chat completion Model Application by Open AI",
+  "description": "Text Embeddings 3 Model Application by Open AI",
   "attributes": {
     "Provider": "Open AI",
     "Category": "Model",
-    "NLP": "Conversational",
-    "Gen AI": "LLM",
+    "NLP": "Feature extraction",
     "Media Type": "Text"
   },
   "codebase": {
@@ -19,7 +18,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "chat-completion-deploy",
+        "name": "text-embeddings-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -34,11 +33,11 @@
     ],
     "modules": [
       {
-        "name": "chat-completion-module",
-        "entryPoint": "adapters/chat_completion/chat_completion.py",
+        "name": "text-embeddings-module",
+        "entryPoint": "adapters/text_embeddings/text_embeddings.py",
         "className": "ModelAdapter",
-        "computeConfig": "chat-completion-deploy",
-        "description": "Chat completion Module",
+        "computeConfig": "text-embeddings-deploy",
+        "description": "Text Embeddings 3 Module",
         "initInputs": [
           {
             "type": "Model",
@@ -51,7 +50,7 @@
         ],
         "functions": [
           {
-            "name": "predict_items",
+            "name": "extract_items_features",
             "input": [
               {
                 "type": "Item[]",
@@ -63,17 +62,17 @@
               {
                 "type": "Item[]",
                 "name": "items",
-                "description": "The same input images for prediction."
+                "description": "The same input items for prediction."
               },
               {
-                "type": "Annotation[]",
-                "name": "annotations",
-                "description": "The predicted annotations."
+                "type": "Feature[]",
+                "name": "feature",
+                "description": "The extracted features."
               }
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "Chat completion API"
+            "description": "Text Embeddings 3 API"
           },
           {
             "name": "predict_dataset",
@@ -93,7 +92,7 @@
             ],
             "displayName": "Predict Dataset",
             "displayIcon": "",
-            "description": "Chat Completion Open AI Dataset"
+            "description": "Text Embeddings 3 Open AI Dataset"
           }
         ]
       }
@@ -101,7 +100,7 @@
     "models": [
       {
         "name": "openai-gpt-3.5-turbo",
-        "moduleName": "chat-completion-module",
+        "moduleName": "text-embeddings-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {},

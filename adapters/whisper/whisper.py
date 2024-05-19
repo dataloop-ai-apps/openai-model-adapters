@@ -63,7 +63,7 @@ class Whisper(dl.BaseModelAdapter):
                 start = timestamp[0]
                 end = timestamp[1]
                 builder.add(annotation_definition=dl.Subtitle(label=f'Transcript', text=text),
-                            model_info={'name': 'openai/whisper-large-v3', 'confidence': 0.0},
+                            model_info={'name': 'openai/whisper-large-v3', 'confidence': 1.0},
                             start_time=start,
                             end_time=end)
             batch_annotations.append(builder)

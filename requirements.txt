@@ -1,3 +1,4 @@
 transformers
 accelerate
-openai==0.28
+openai
+git+https://github.com/kostyachum/python-markdown-plain-text.git#egg=plain-text-markdown-extention

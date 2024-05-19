@@ -47,41 +47,6 @@
         ],
         "functions": [
           {
-            "name": "evaluate_model",
-            "input": [
-              {
-                "type": "Model",
-                "name": "model",
-                "description": "Dataloop Model Entity"
-              },
-              {
-                "type": "Dataset",
-                "name": "dataset",
-                "description": "Dataloop Dataset Entity"
-              },
-              {
-                "type": "Json",
-                "name": "filters",
-                "description": "Dataloop Filter DQL"
-              }
-            ],
-            "output": [
-              {
-                "type": "Model",
-                "name": "model",
-                "description": "Dataloop Model Entity"
-              },
-              {
-                "type": "Dataset",
-                "name": "dataset",
-                "description": "Dataloop Dataset Entity"
-              }
-            ],
-            "displayName": "Evaluate a Model",
-            "displayIcon": "",
-            "description": "Function to evaluate open AI whipser model performance"
-          },
-          {
             "name": "predict_items",
             "input": [
               {
@@ -134,7 +99,7 @@
         "name": "openai-whisper",
         "moduleName": "whisper-module",
         "scope": "project",
-        "status": "trained",
+        "status": "pre-trained",
         "configuration": {
           "max_new_tokens": 128,
           "chunk_length_s": 30,
