@@ -116,7 +116,7 @@
               {
                 "type": "Dataset",
                 "name": "dataset",
-                "description": ""
+                "description": "Dataloop Dataset Entity"
               },
               {
                 "type": "Json",
@@ -138,7 +138,7 @@
         "name": "openai-gpt-3.5-turbo",
         "moduleName": "chat-completion-module",
         "scope": "project",
-        "status": "trained",
+        "status": "pre-trained",
         "configuration": {},
         "description": "OpenAI API call for gpt-3.5-turbo"
       }
