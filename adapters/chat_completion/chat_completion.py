@@ -25,7 +25,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.model = OpenAI(api_key=key)
 
     def prepare_item_func(self, item: dl.Item):
-        return item
+        prompt_item = dl.PromptItem.from_item(item=item)
+        return prompt_item
 
     def predict(self, batch: [dl.Item], **kwargs):
         """
@@ -34,51 +35,20 @@ class ModelAdapter(dl.BaseModelAdapter):
         :param kwargs:
         :return:
         """
-        annotations = []
-        for item in batch:
-            buffer = json.load(item.download(save_locally=False))
-            prompts = buffer["prompts"]
-            item_annotations = item.annotations.builder()
-            for prompt_key, prompt_content in prompts.items():
-                for single_prompt in prompt_content:
-                    if not single_prompt.get('mimetype', '') == 'application/text':
-                        continue
-                    print(f"User: {single_prompt['value']}")
-                    response = self.model.chat.completions.create(
-                        model="gpt-3.5-turbo",  # gpt-4
-                        messages=[
-                            {"role": "system", "content": 'You are a helpful assistant who understands data science.'},
-                            {"role": "user", "content": single_prompt['value']}
-                        ])
-                    response_content = response.choices[0].message.content
-                    print("Response: {}".format(response_content))
-                    item_annotations.add(annotation_definition=dl.FreeText(text=response_content),
-                                         prompt_id=prompt_key,
-                                         model_info={
-                                             "name": "gpt-3.5-turbo",
-                                             "confidence": 1.0
-                                         })
-                annotations.append(item_annotations)
-            return annotations
-
-
-def examples():
-    client = OpenAI(api_key='')
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",  # gpt-4
-        messages=[{"role": "system", "content": 'You are a helpful assistant who understands data science.'},
-                  {"role": "user", "content": 'Why is Britain good?'}
-                  ])
-    print(response.choices[0].message.content)
-    # response = openai.Completion.create(
-    #     model="gpt-3.5-turbo",
-    #     prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, "
-    #            "and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help "
-    #            "you today?\nHuman: I'd like to cancel my subscription.\nAI:",
-    #     temperature=0.9,
-    #     max_tokens=150,
-    #     top_p=1,
-    #     frequency_penalty=0.0,
-    #     presence_penalty=0.6,
-    #     stop=[" Human:", " AI:"]
-    # )
+        for prompt_item in batch:
+            item_annotations = dl.AnnotationCollection()
+            messages = prompt_item.messages(model_name=self.model_entity.name)
+            response = self.model.chat.completions.create(
+                model="gpt-3.5-turbo",  # gpt-4
+                messages=messages)
+            response_content = response.choices[0].message.content
+            print("Response: {}".format(response_content))
+            prompt_key = messages[-1].get('name')
+            item_annotations.add(annotation_definition=dl.FreeText(text=response_content),
+                                 prompt_id=prompt_key,
+                                 model_info={
+                                     "model_id": self.model_entity.id,
+                                     "name": self.model_entity.name,
+                                     "confidence": 1.0
+                                 })
+            prompt_item.add_responses(annotations=item_annotations)
