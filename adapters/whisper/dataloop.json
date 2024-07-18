@@ -8,8 +8,9 @@
     "Provider": "Open AI",
     "License": "Apache 2.0",
     "Category": "Model",
-    "NLP": "Translation",
-    "Media Type": "Audio"
+    "Audio": "Auto Speech Recognition",
+    "Media Type": "Audio",
+    "Deployed By": "Open AI"
   },
   "codebase": {
     "type": "git",
