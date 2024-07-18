@@ -10,7 +10,7 @@
     "NLP": "Conversational",
     "Gen AI": "LLM",
     "Media Type": "Text",
-    "Deployed By": "Dataloop"
+    "Deployed By": "Open AI"
   },
   "codebase": {
     "type": "git",
