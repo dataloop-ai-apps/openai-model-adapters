@@ -9,7 +9,8 @@
     "Category": "Model",
     "NLP": "Conversational",
     "Gen AI": "LLM",
-    "Media Type": "Text"
+    "Media Type": "Text",
+    "Deployed By": "Dataloop"
   },
   "codebase": {
     "type": "git",
