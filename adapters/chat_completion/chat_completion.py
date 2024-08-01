@@ -12,17 +12,21 @@ logger = logging.getLogger('openai-adapter')
                               init_inputs={'model_entity': dl.Model,
                                            'openai_key_name': "String"})
 class ModelAdapter(dl.BaseModelAdapter):
-    def __init__(self, model_entity: dl.Model, openai_key_name):
-        self.openai_key_name = openai_key_name
-        super().__init__(model_entity=model_entity)
 
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
-        key = os.environ.get(self.openai_key_name)
-        if key is None:
-            raise ValueError("Cannot find a key for OPENAI")
-        openai.api_key = key
+        self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+    def stream_response(self, messages):
+
+        response = self.client.chat.completions.create(
+            messages=messages,
+            stream=True,
+            model='gpt-4o'
+        )
+        for chunk in response:
+            yield chunk.choices[0].delta.content or ""
 
     def prepare_item_func(self, item: dl.Item):
         return item
@@ -36,48 +40,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         """
         annotations = []
         for item in batch:
-            buffer = json.load(item.download(save_locally=False))
-            prompts = buffer["prompts"]
-            item_annotations = item.annotations.builder()
-            for prompt_key, prompt_content in prompts.items():
-                for single_prompt in prompt_content:
-                    if not single_prompt.get('mimetype', '') == 'application/text':
-                        continue
-                    print(f"User: {single_prompt['value']}")
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",  # gpt-4
-                        messages=[
-                            {"role": "system", "content": 'You are a helpful assistant who understands data science.'},
-                            {"role": "user", "content": single_prompt['value']}
-                        ])
-                    response_content = response["choices"][0]["message"]["content"]
-                    print("Response: {}".format(response_content))
-                    item_annotations.add(annotation_definition=dl.FreeText(text=response_content),
-                                         prompt_id=prompt_key,
-                                         model_info={
-                                             "name": "gpt-3.5-turbo",
-                                             "confidence": 1.0
-                                         })
-                annotations.append(item_annotations)
+            for chunk in self.stream_response(messages=item.messages):
+                item.add_response(chunk)
             return annotations
-
-
-def examples(self):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",  # gpt-4
-        messages=[{"role": "system", "content": 'You are a helpful assistant who understands data science.'},
-                  {"role": "user", "content": 'Why is Britain good?'}
-                  ])
-
-    response = openai.Completion.create(
-        model="gpt-3.5-turbo",
-        prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, "
-               "and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help "
-               "you today?\nHuman: I'd like to cancel my subscription.\nAI:",
-        temperature=0.9,
-        max_tokens=150,
-        top_p=1,
-        frequency_penalty=0.0,
-        presence_penalty=0.6,
-        stop=[" Human:", " AI:"]
-    )
