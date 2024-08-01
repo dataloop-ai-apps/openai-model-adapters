@@ -26,7 +26,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "python:3.10",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
@@ -46,10 +46,6 @@
           {
             "type": "Model",
             "name": "model_entity"
-          },
-          {
-            "type": "String",
-            "name": "openai_key_name"
           }
         ],
         "functions": [
@@ -142,7 +138,10 @@
         "moduleName": "chat-completion-module",
         "scope": "project",
         "status": "pre-trained",
-        "configuration": {},
+        "configuration": {
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "model_name": "gpt-4o"
+        },
         "description": "OpenAI API call for gpt-3.5-turbo"
       }
     ]
