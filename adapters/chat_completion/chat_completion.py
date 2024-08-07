@@ -36,7 +36,6 @@ class ModelAdapter(dl.BaseModelAdapter):
     def predict(self, batch, **kwargs):
         system_prompt = self.model_entity.configuration.get('system_prompt', "")
         for prompt_item in batch:
-            # prompt_item._get_assistant_prompts(model_name=self.model_entity.name)
             messages = prompt_item.to_messages(
                 model_name=self.model_entity.name)  # Get all messages including model annotations
             messages.insert(0, {"role": "system",
@@ -71,7 +70,6 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 if __name__ == '__main__':
     from dotenv import load_dotenv
-
     load_dotenv()
 
     dl.setenv('prod')
