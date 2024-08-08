@@ -1,7 +1,6 @@
-import openai
 import dtlpy as dl
 import logging
-import json
+import openai
 import os
 
 logger = logging.getLogger('openai-adapter')
@@ -9,75 +8,66 @@ logger = logging.getLogger('openai-adapter')
 
 @dl.Package.decorators.module(name='model-adapter',
                               description='Model Adapter for OpenAI models',
-                              init_inputs={'model_entity': dl.Model,
-                                           'openai_key_name': "String"})
+                              init_inputs={'model_entity': dl.Model})
 class ModelAdapter(dl.BaseModelAdapter):
-    def __init__(self, model_entity: dl.Model, openai_key_name):
-        self.openai_key_name = openai_key_name
-        super().__init__(model_entity=model_entity)
 
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
-        key = os.environ.get(self.openai_key_name)
-        if key is None:
-            raise ValueError("Cannot find a key for OPENAI")
-        openai.api_key = key
+        self.adapter_defaults.upload_annotations = False
+        self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+    def stream_response(self, messages):
+
+        response = self.client.chat.completions.create(
+            messages=messages,
+            stream=True,
+            model=self.configuration.get('model_name', 'gpt-4o')
+        )
+        for chunk in response:
+            yield chunk.choices[0].delta.content or ""
 
     def prepare_item_func(self, item: dl.Item):
-        return item
+        prompt_item = dl.PromptItem.from_item(item)
+        return prompt_item
 
-    def predict(self, batch: [dl.Item], **kwargs):
-        """
-        API call for Openai on the items batch
-        :param batch: list of dl.Items
-        :param kwargs:
-        :return:
-        """
-        annotations = []
-        for item in batch:
-            buffer = json.load(item.download(save_locally=False))
-            prompts = buffer["prompts"]
-            item_annotations = item.annotations.builder()
-            for prompt_key, prompt_content in prompts.items():
-                for single_prompt in prompt_content:
-                    if not single_prompt.get('mimetype', '') == 'application/text':
-                        continue
-                    print(f"User: {single_prompt['value']}")
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",  # gpt-4
-                        messages=[
-                            {"role": "system", "content": 'You are a helpful assistant who understands data science.'},
-                            {"role": "user", "content": single_prompt['value']}
-                        ])
-                    response_content = response["choices"][0]["message"]["content"]
-                    print("Response: {}".format(response_content))
-                    item_annotations.add(annotation_definition=dl.FreeText(text=response_content),
-                                         prompt_id=prompt_key,
-                                         model_info={
-                                             "name": "gpt-3.5-turbo",
-                                             "confidence": 1.0
-                                         })
-                annotations.append(item_annotations)
-            return annotations
+    def predict(self, batch, **kwargs):
+        system_prompt = self.model_entity.configuration.get('system_prompt', "")
+        for prompt_item in batch:
+
+            messages = prompt_item.to_messages(
+                model_name=self.model_entity.name)  # Get all messages including model annotations
+            messages.insert(0, {"role": "system",
+                                "content": system_prompt})
+
+            nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
+            if len(nearest_items) > 0:
+                context = prompt_item.build_context(nearest_items=nearest_items,
+                                                    add_metadata=['system.document.source'])
+                messages.append({"role": "assistant", "content": context})
+
+            stream = self.stream_response(messages=messages)
+            response = ""
+            for chunk in stream:
+                #  Build text that includes previous stream
+                response += chunk
+                prompt_item.add(message={"role": "assistant",
+                                         "content": [{"mimetype": dl.PromptType.TEXT,
+                                                      "value": response}]},
+                                stream=True,
+                                model_info={'name': self.model_entity.name,
+                                            'confidence': 1.0,
+                                            'model_id': self.model_entity.id})
+
+        return []
 
 
-def examples(self):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",  # gpt-4
-        messages=[{"role": "system", "content": 'You are a helpful assistant who understands data science.'},
-                  {"role": "user", "content": 'Why is Britain good?'}
-                  ])
+if __name__ == '__main__':
+    from dotenv import load_dotenv
+    load_dotenv()
 
-    response = openai.Completion.create(
-        model="gpt-3.5-turbo",
-        prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, "
-               "and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help "
-               "you today?\nHuman: I'd like to cancel my subscription.\nAI:",
-        temperature=0.9,
-        max_tokens=150,
-        top_p=1,
-        frequency_penalty=0.0,
-        presence_penalty=0.6,
-        stop=[" Human:", " AI:"]
-    )
+    dl.setenv('prod')
+    model = dl.models.get(model_id="66a8f9e2c7aab26441aa5869")
+    item = dl.items.get(item_id="66b369a82e90de89dde976e0")
+    a = ModelAdapter(model)
+    a.predict_items([item])
