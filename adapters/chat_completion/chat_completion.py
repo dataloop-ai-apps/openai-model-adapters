@@ -8,16 +8,13 @@ logger = logging.getLogger('openai-adapter')
 
 @dl.Package.decorators.module(name='model-adapter',
                               description='Model Adapter for OpenAI models',
-                              init_inputs={'model_entity': dl.Model,
-                                           'openai_key_name': "String"})
+                              init_inputs={'model_entity': dl.Model})
 class ModelAdapter(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
         self.adapter_defaults.upload_annotations = False
-        self.adapter_defaults.clean_annotations = self.configuration.get("clean_annotations",
-                                                                         True)  # TODO: add it to configuration?
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
     def stream_response(self, messages):

@@ -1,154 +1,155 @@
 {
-    "name": "chat-completion-openai",
-    "version": "0.0.22",
-    "attributes": {
-        "Provider": "Open AI",
-        "Category": "Model",
-        "NLP": "Conversational",
-        "Gen AI": "LLM",
-        "Media Type": [
-            "Text"
+  "name": "chat-completion-openai",
+  "version": "0.0.22",
+  "attributes": {
+    "Provider": "Open AI",
+    "Category": "Model",
+    "NLP": "Conversational",
+    "Gen AI": "LLM",
+    "Media Type": [
+      "Text",
+      "Image"
+    ],
+    "Deployed By": "Dataloop"
+  },
+  "displayName": "Chat Completion - OpenAI",
+  "description": "Chat completion Model Application by Open AI",
+  "scope": "project",
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "chat-completion-deploy",
+        "versions": {
+          "dtlpy": "1.93.6"
+        },
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 50,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "chat-completion-module",
+        "entryPoint": "adapters/chat_completion/chat_completion.py",
+        "className": "ModelAdapter",
+        "computeConfig": "chat-completion-deploy",
+        "description": "Chat completion Module",
+        "versions": {
+          "dtlpy": "1.93.6"
+        },
+        "integrations": "dl-openai-api-key",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
         ],
-        "Deployed By": "Open AI"
-    },
-    "displayName": "Chat Completion - OpenAI",
-    "description": "Chat completion Model Application by Open AI",
-    "scope": "project",
-    "components": {
-        "computeConfigs": [
-            {
-                "name": "chat-completion-deploy",
-                "versions": {
-                    "dtlpy": "1.93.6"
-                },
-                "runtime": {
-                    "podType": "regular-xs",
-                    "concurrency": 50,
-                    "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12",
-                    "autoscaler": {
-                        "type": "rabbitmq",
-                        "minReplicas": 0,
-                        "maxReplicas": 2
-                    }
-                }
-            }
-        ],
-        "modules": [
-            {
-                "name": "chat-completion-module",
-                "entryPoint": "adapters/chat_completion/chat_completion.py",
-                "className": "ModelAdapter",
-                "computeConfig": "chat-completion-deploy",
-                "description": "Chat completion Module",
-                "versions": {
-                    "dtlpy": "1.93.6"
-                },
-                "integrations": "dl-openai-api-key",
-                "initInputs": [
-                    {
-                        "type": "Model",
-                        "name": "model_entity"
-                    }
-                ],
-                "functions": [
-                    {
-                        "name": "evaluate_model",
-                        "input": [
-                            {
-                                "type": "Model",
-                                "name": "model",
-                                "description": "Dataloop Model Entity"
-                            },
-                            {
-                                "type": "Dataset",
-                                "name": "dataset",
-                                "description": "Dataloop Dataset Entity"
-                            },
-                            {
-                                "type": "Json",
-                                "name": "filters",
-                                "description": "Dataloop Filter DQL"
-                            }
-                        ],
-                        "output": [
-                            {
-                                "type": "Model",
-                                "name": "model",
-                                "description": "Dataloop Model Entity"
-                            },
-                            {
-                                "type": "Dataset",
-                                "name": "dataset",
-                                "description": "Dataloop Dataset Entity"
-                            }
-                        ],
-                        "displayName": "Evaluate a Model",
-                        "displayIcon": "",
-                        "description": "Function to evaluate open AI chat completion model performance",
-                        "computeConfig": null
-                    },
-                    {
-                        "name": "predict_items",
-                        "input": [
-                            {
-                                "type": "Item[]",
-                                "name": "items",
-                                "description": "List of items to run inference on"
-                            }
-                        ],
-                        "output": [
-                            {
-                                "type": "Item[]",
-                                "name": "items",
-                                "description": "The same input images for prediction."
-                            },
-                            {
-                                "type": "Annotation[]",
-                                "name": "annotations",
-                                "description": "The predicted annotations."
-                            }
-                        ],
-                        "displayName": "Predict Items",
-                        "displayIcon": "",
-                        "description": "Chat completion API",
-                        "computeConfig": null
-                    },
-                    {
-                        "name": "predict_dataset",
-                        "input": [
-                            {
-                                "type": "Dataset",
-                                "name": "dataset",
-                                "description": "Dataloop Dataset Entity"
-                            },
-                            {
-                                "type": "Json",
-                                "name": "filters",
-                                "description": "Dataloop Filter DQL"
-                            }
-                        ],
-                        "output": [
-                        ],
-                        "displayName": "Predict Dataset",
-                        "displayIcon": "",
-                        "description": "Chat Completion Open AI Dataset",
-                        "computeConfig": null
-                    }
-                ]
-            }
-        ],
-        "models": [
-            {
-                "name": "openai-gpt-4o",
-                "moduleName": "chat-completion-module",
-                "scope": "project",
-                "status": "pre-trained",
-                "configuration": {
-                    "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
-                    "model_name": "gpt-4o"
-                },
-                "description": "OpenAI API call for gpt-4o"
-            }
+        "functions": [
+          {
+            "name": "evaluate_model",
+            "input": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              }
+            ],
+            "displayName": "Evaluate a Model",
+            "displayIcon": "",
+            "description": "Function to evaluate open AI chat completion model performance",
+            "computeConfig": null
+          },
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "Chat completion API",
+            "computeConfig": null
+          },
+          {
+            "name": "predict_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+            ],
+            "displayName": "Predict Dataset",
+            "displayIcon": "",
+            "description": "Chat Completion Open AI Dataset",
+            "computeConfig": null
+          }
         ]
-    }
+      }
+    ],
+    "models": [
+      {
+        "name": "openai-gpt-4o",
+        "moduleName": "chat-completion-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "model_name": "gpt-4o"
+        },
+        "description": "OpenAI API call for gpt-4o"
+      }
+    ]
+  }
 }
