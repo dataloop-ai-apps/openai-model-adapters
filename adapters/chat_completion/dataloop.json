@@ -144,8 +144,7 @@
                 "status": "pre-trained",
                 "configuration": {
                     "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
-                    "model_name": "gpt-4o",
-                    "upload_annotations": false
+                    "model_name": "gpt-4o"
                 },
                 "description": "OpenAI API call for gpt-4o"
             }

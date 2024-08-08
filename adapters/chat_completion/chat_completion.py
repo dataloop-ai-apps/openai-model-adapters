@@ -15,6 +15,9 @@ class ModelAdapter(dl.BaseModelAdapter):
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
+        self.adapter_defaults.upload_annotations = False
+        self.adapter_defaults.clean_annotations = self.configuration.get("clean_annotations",
+                                                                         True)  # TODO: add it to configuration?
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
     def stream_response(self, messages):
@@ -24,10 +27,8 @@ class ModelAdapter(dl.BaseModelAdapter):
             stream=True,
             model=self.configuration.get('model_name', 'gpt-4o')
         )
-
-        ans = ""
         for chunk in response:
-            yield ans + (chunk.choices[0].delta.content or "")
+            yield chunk.choices[0].delta.content or ""
 
     def prepare_item_func(self, item: dl.Item):
         prompt_item = dl.PromptItem.from_item(item)
@@ -36,20 +37,16 @@ class ModelAdapter(dl.BaseModelAdapter):
     def predict(self, batch, **kwargs):
         system_prompt = self.model_entity.configuration.get('system_prompt', "")
         for prompt_item in batch:
+
             messages = prompt_item.to_messages(
                 model_name=self.model_entity.name)  # Get all messages including model annotations
             messages.insert(0, {"role": "system",
                                 "content": system_prompt})
+
             nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
             if len(nearest_items) > 0:
-                # build context
-                context = ""
-                for item_id in nearest_items:
-                    context_item = dl.items.get(item_id=item_id)
-                    source = context_item.metadata['system'].get('document', dict()).get('source', "missing")
-                    with open(context_item.download(), 'r', encoding='utf-8') as f:
-                        text = f.read()
-                    context += f"\n<source>\n{source}\n</source>\n<text>\n{text}\n</text>"
+                context = prompt_item.build_context(nearest_items=nearest_items,
+                                                    add_metadata=['system.document.source'])
                 messages.append({"role": "assistant", "content": context})
 
             stream = self.stream_response(messages=messages)
