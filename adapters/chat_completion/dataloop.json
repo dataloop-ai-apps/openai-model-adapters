@@ -1,6 +1,6 @@
 {
   "name": "chat-completion-openai",
-  "version": "0.0.22",
+  "version": "0.0.13",
   "attributes": {
     "Provider": "Open AI",
     "Category": "Model",
@@ -12,9 +12,14 @@
     ],
     "Deployed By": "Dataloop"
   },
-  "displayName": "Chat Completion - OpenAI",
+  "displayName": "Chat Completion",
   "description": "Chat completion Model Application by Open AI",
-  "scope": "project",
+  "scope": "public",
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
+    "gitTag": "0.0.13"
+  },
   "components": {
     "computeConfigs": [
       {
@@ -25,7 +30,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 50,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:"0.0.13"",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
