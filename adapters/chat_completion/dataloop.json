@@ -25,12 +25,12 @@
             {
                 "name": "chat-completion-deploy",
                 "versions": {
-                    "dtlpy": "1.93.6"
+                    "dtlpy": "1.93.9"
                 },
                 "runtime": {
                     "podType": "regular-xs",
                     "concurrency": 50,
-                    "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:",
+                    "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12",
                     "autoscaler": {
                         "type": "rabbitmq",
                         "minReplicas": 0,
@@ -47,9 +47,11 @@
                 "computeConfig": "chat-completion-deploy",
                 "description": "Chat completion Module",
                 "versions": {
-                    "dtlpy": "1.93.6"
+                    "dtlpy": "1.93.9"
                 },
-
+                "integrations": [
+                    "dl-openai-api-key"
+                ],
                 "initInputs": [
                     {
                         "type": "Model",
