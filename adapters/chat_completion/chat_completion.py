@@ -15,6 +15,9 @@ class ModelAdapter(dl.BaseModelAdapter):
         """ Load configuration for OpenAI adapter
         """
         self.adapter_defaults.upload_annotations = False
+        if os.environ.get("OPENAI_API_KEY", None) is None:
+            raise ValueError(f"Missing API key: OPENAI_API_KEY")
+
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
     def stream_response(self, messages):
@@ -64,6 +67,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 if __name__ == '__main__':
     from dotenv import load_dotenv
+
     load_dotenv()
 
     dl.setenv('prod')
