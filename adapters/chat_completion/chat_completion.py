@@ -78,7 +78,7 @@ if __name__ == '__main__':
     load_dotenv()
 
     dl.setenv('prod')
-    model = dl.models.get(model_id="66a8f9e2c7aab26441aa5869")
-    item = dl.items.get(item_id="66b369a82e90de89dde976e0")
+    model = dl.models.get(model_id="")
+    item = dl.items.get(item_id="")
     a = ModelAdapter(model)
     a.predict_items([item])
