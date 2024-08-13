@@ -15,6 +15,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         """ Load configuration for OpenAI adapter
         """
         self.adapter_defaults.upload_annotations = False
+        self.stream = self.configuration.get("stream", True)
         if os.environ.get("OPENAI_API_KEY", None) is None:
             raise ValueError(f"Missing API key: OPENAI_API_KEY")
 
@@ -24,7 +25,10 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         response = self.client.chat.completions.create(
             messages=messages,
-            stream=True,
+            max_tokens=self.get_config_value("max_tokens"),
+            temperature=self.get_config_value("temperature"),
+            top_p=self.get_config_value("top_p"),
+            stream=self.stream,
             model=self.configuration.get('model_name', 'gpt-4o')
         )
         for chunk in response:
@@ -35,34 +39,37 @@ class ModelAdapter(dl.BaseModelAdapter):
         return prompt_item
 
     def predict(self, batch, **kwargs):
-        system_prompt = self.model_entity.configuration.get('system_prompt', "")
+        system_prompt = self.model_entity.configuration.get('system_prompt', '')
         for prompt_item in batch:
-
-            messages = prompt_item.to_messages(
-                model_name=self.model_entity.name)  # Get all messages including model annotations
+            # Get all messages including model annotations
+            messages = prompt_item.to_messages(model_name=self.model_entity.name)
             messages.insert(0, {"role": "system",
                                 "content": system_prompt})
 
             nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
             if len(nearest_items) > 0:
                 context = prompt_item.build_context(nearest_items=nearest_items,
-                                                    add_metadata=['system.document.source'])
+                                                    add_metadata=self.configuration.get("add_metadata"))
                 messages.append({"role": "assistant", "content": context})
 
-            stream = self.stream_response(messages=messages)
+            stream_response = self.stream_response(messages=messages)
             response = ""
-            for chunk in stream:
+            for chunk in stream_response:
                 #  Build text that includes previous stream
                 response += chunk
                 prompt_item.add(message={"role": "assistant",
                                          "content": [{"mimetype": dl.PromptType.TEXT,
                                                       "value": response}]},
-                                stream=True,
+                                stream=self.stream,
                                 model_info={'name': self.model_entity.name,
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
 
         return []
+
+    def get_config_value(self, key):
+        value = self.configuration.get(key)
+        return openai.NOT_GIVEN if value is None else value
 
 
 if __name__ == '__main__':
