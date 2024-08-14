@@ -51,7 +51,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
                 response = self.model.embeddings.create(
                     input=text,
                     model=self.model_name,
-                    dimensions=256
+                    dimensions=self.model_entity.configuration.get('dimensions', 256)
                 )
                 embedding = response.data[0].embedding
                 logger.info(f'Extracted embeddings for text {text}: {embedding}')

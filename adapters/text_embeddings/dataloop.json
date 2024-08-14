@@ -25,7 +25,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "python:3.10",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
@@ -102,7 +102,8 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "model_name": "text-embedding-3-large"
+          "model_name": "text-embedding-3-large",
+          "dimensions": 256
         },
         "description": "OpenAI API call for text-embeddings-3l"
       }
