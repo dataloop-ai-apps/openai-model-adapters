@@ -8,7 +8,9 @@ ENV HOME=/tmp
 RUN pip install \
     transformers \
     accelerate \
-    openai
+    openai \
+    git+https://github.com/kostyachum/python-markdown-plain-text.git#egg=plain-text-markdown-extention
+
 
 
 # docker build -t gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12 -f Dockerfile .

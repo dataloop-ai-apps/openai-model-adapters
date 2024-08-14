@@ -6,7 +6,6 @@
   "description": "Whisper Model Application",
   "attributes": {
     "Provider": "Open AI",
-    "License": "Apache 2.0",
     "Category": "Model",
     "Audio": "Auto Speech Recognition",
     "Media Type": [
