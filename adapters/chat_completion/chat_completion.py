@@ -64,7 +64,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 prompt_item.add(message={"role": "assistant",
                                          "content": [{"mimetype": dl.PromptType.TEXT,
                                                       "value": response}]},
-                                stream=self.stream,
+                                stream=True,
                                 model_info={'name': self.model_entity.name,
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     load_dotenv()
 
-    dl.setenv('prod')
+    dl.setenv('rc')
     model = dl.models.get(model_id="")
     item = dl.items.get(item_id="")
     a = ModelAdapter(model)
