@@ -31,8 +31,11 @@ class ModelAdapter(dl.BaseModelAdapter):
             stream=self.stream,
             model=self.configuration.get('model_name', 'gpt-4o')
         )
-        for chunk in response:
-            yield chunk.choices[0].delta.content or ""
+        if self.stream:
+            for chunk in response:
+                yield chunk.choices[0].delta.content or ""
+        else:
+            yield response.choices[0].message.content or ""
 
     def prepare_item_func(self, item: dl.Item):
         prompt_item = dl.PromptItem.from_item(item)
@@ -50,6 +53,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             if len(nearest_items) > 0:
                 context = prompt_item.build_context(nearest_items=nearest_items,
                                                     add_metadata=self.configuration.get("add_metadata"))
+                logger.info(f"Nearest items Context: {context}")
                 messages.append({"role": "assistant", "content": context})
 
             stream_response = self.stream_response(messages=messages)

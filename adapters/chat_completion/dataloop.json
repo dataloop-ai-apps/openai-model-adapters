@@ -1,11 +1,11 @@
 {
-    "name": "chat-completion-openai",
+    "name": "chat-completion",
     "version": "0.0.16",
     "attributes": {
         "Provider": "Open AI",
         "Category": "Model",
         "NLP": "Conversational",
-        "Gen AI": "LLM",
+        "Gen AI": "LMM",
         "Media Type": [
             "Text",
             "Image"
