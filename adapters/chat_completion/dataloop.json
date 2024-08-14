@@ -29,7 +29,7 @@
         },
         "runtime": {
           "podType": "regular-xs",
-          "concurrency": 50,
+          "concurrency": 10,
           "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12",
           "autoscaler": {
             "type": "rabbitmq",
@@ -92,8 +92,7 @@
             ],
             "displayName": "Evaluate a Model",
             "displayIcon": "",
-            "description": "Function to evaluate open AI chat completion model performance",
-            "computeConfig": null
+            "description": "Function to evaluate open AI chat completion model performance"
           },
           {
             "name": "predict_items",
@@ -118,8 +117,7 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "Chat completion API",
-            "computeConfig": null
+            "description": "Chat completion API"
           },
           {
             "name": "predict_dataset",
@@ -139,8 +137,7 @@
             ],
             "displayName": "Predict Dataset",
             "displayIcon": "",
-            "description": "Chat Completion Open AI Dataset",
-            "computeConfig": null
+            "description": "Chat Completion Open AI Dataset"
           }
         ]
       }
