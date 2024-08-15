@@ -103,7 +103,7 @@
         "status": "pre-trained",
         "configuration": {
           "model_name": "text-embedding-3-large",
-          "dimensions": 256
+          "embeddings_size": 256
         },
         "description": "OpenAI API call for text-embeddings-3l"
       }
