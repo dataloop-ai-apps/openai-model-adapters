@@ -22,6 +22,9 @@
     "computeConfigs": [
       {
         "name": "text-embeddings-deploy",
+        "versions": {
+          "dtlpy": "1.94.2"
+        },
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -41,6 +44,9 @@
         "className": "ModelAdapter",
         "computeConfig": "text-embeddings-deploy",
         "description": "Text Embeddings 3 Module",
+        "versions": {
+          "dtlpy": "1.94.2"
+        },
         "initInputs": [
           {
             "type": "Model",
@@ -101,6 +107,7 @@
         "moduleName": "text-embeddings-module",
         "scope": "project",
         "status": "pre-trained",
+        "inputType": "text"
         "configuration": {
           "model_name": "text-embedding-3-large",
           "embeddings_size": 256
