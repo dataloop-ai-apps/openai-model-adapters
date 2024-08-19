@@ -107,10 +107,23 @@
         "moduleName": "text-embeddings-module",
         "scope": "project",
         "status": "pre-trained",
-        "inputType": "text"
+        "inputType": "text",
         "configuration": {
           "model_name": "text-embedding-3-large",
           "embeddings_size": 256
+        },
+        "description": "OpenAI API call for text-embeddings-3l"
+      },
+      {
+        "name": "openai-prompt-embeddings-3l",
+        "moduleName": "text-embeddings-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "text",
+        "configuration": {
+          "model_name": "text-embedding-3-large",
+          "embeddings_size": 256,
+          "hyde_model_name": ""
         },
         "description": "OpenAI API call for text-embeddings-3l"
       }
