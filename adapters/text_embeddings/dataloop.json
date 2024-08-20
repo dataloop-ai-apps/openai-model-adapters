@@ -45,7 +45,7 @@
         "computeConfig": "text-embeddings-deploy",
         "description": "Text Embeddings 3 Module",
         "versions": {
-          "dtlpy": "1.94.2"
+          "dtlpy": "1.94.3"
         },
         "initInputs": [
           {
