@@ -1,7 +1,7 @@
 {
   "name": "text-embeddings-3",
   "displayName": "Text Embedding 3",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Text Embeddings 3 Model Application by Open AI",
   "scope": "public",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
-    "gitTag": "0.0.21"
+    "gitTag": "0.0.22"
   },
   "components": {
     "computeConfigs": [
