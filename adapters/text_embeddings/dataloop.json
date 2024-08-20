@@ -23,7 +23,7 @@
       {
         "name": "text-embeddings-deploy",
         "versions": {
-          "dtlpy": "1.94.2"
+          "dtlpy": "1.94.3"
         },
         "runtime": {
           "podType": "regular-xs",
