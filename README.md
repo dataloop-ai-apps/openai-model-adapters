@@ -10,7 +10,7 @@ This repository contains code for integrating `OpenAI` models into the `Dataloop
 
 <img src="assets/market_place.png" alt="Image of the pipeline">
 
-3. Insert you API key as an `Secret` in Dataloop plat-rom under the name `OPENAI_API_KEY`:
+3. Insert your API key as a `Secret` in Dataloop platform under the name `OPENAI_API_KEY`:
 
 
 * Navigate to Data Governance in the left option dialog.
@@ -21,7 +21,7 @@ This repository contains code for integrating `OpenAI` models into the `Dataloop
 
 ![img.png](assets/img.png)
 
-* Insert you API Key and save:
+* Insert your API Key and save:
 
 <img src="assets/secret.png" alt="Image of the pipeline">
 
