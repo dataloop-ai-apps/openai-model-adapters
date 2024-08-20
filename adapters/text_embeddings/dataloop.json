@@ -47,6 +47,9 @@
         "versions": {
           "dtlpy": "1.94.3"
         },
+        "integrations": [
+          "dl-openai-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
