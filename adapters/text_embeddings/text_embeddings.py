@@ -40,7 +40,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
                 except ValueError as e:
                     raise ValueError(f'Only mimetype text or prompt items are supported {e}')
 
-            response = self.model.embeddings.create(
+            response = self.client.embeddings.create(
                 input=text,
                 model=self.model_name,
                 dimensions=self.model_entity.configuration.get('embeddings_size', 256)
