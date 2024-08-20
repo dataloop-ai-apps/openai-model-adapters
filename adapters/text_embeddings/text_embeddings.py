@@ -20,8 +20,10 @@ class TextEmbeddings(dl.BaseModelAdapter):
         embeddings = []
         for item in batch:
             if isinstance(item, str):
+                self.adapter_defaults.upload_features = True
                 text = item
             else:
+                self.adapter_defaults.upload_features = False
                 try:
                     prompt_item = dl.PromptItem.from_item(item)
                     is_hyde = item.metadata.get('prompt', dict()).get('is_hyde', False)
