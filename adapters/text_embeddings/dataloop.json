@@ -1,0 +1,135 @@
+{
+  "name": "text-embeddings-3",
+  "displayName": "Text Embedding 3",
+  "version": "0.0.27",
+  "description": "Text Embeddings 3 Model Application by Open AI",
+  "scope": "public",
+  "attributes": {
+    "Provider": "Open AI",
+    "Deployed By": "Open AI",
+    "Category": "Model",
+    "NLP": "Embeddings",
+    "Media Type": [
+      "Text"
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
+    "gitTag": "0.0.27"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "text-embeddings-deploy",
+        "versions": {
+          "dtlpy": "1.94.3"
+        },
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "text-embeddings-module",
+        "entryPoint": "adapters/text_embeddings/text_embeddings.py",
+        "className": "TextEmbeddings",
+        "computeConfig": "text-embeddings-deploy",
+        "description": "Text Embeddings 3 Module",
+        "versions": {
+          "dtlpy": "1.94.3"
+        },
+        "integrations": [
+          "dl-openai-api-key"
+        ],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "embed_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The input items for embeddings."
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input items for embeddings."
+              },
+              {
+                "type": "Json",
+                "name": "json",
+                "description": "Embeddings of items."
+              }
+            ],
+            "displayName": "Embed Items",
+            "displayIcon": "",
+            "description": "The inference function of the model."
+          },
+          {
+            "name": "embed_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "The input dataset of the items required for prediction."
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "The DQL in json format to get all the items required for prediction."
+              }
+            ],
+            "output": [],
+            "displayName": "Embed Dataset",
+            "displayIcon": "",
+            "description": "Inference function of the model on a dataset."
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "openai-text-embeddings-3l",
+        "moduleName": "text-embeddings-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "text",
+        "configuration": {
+          "model_name": "text-embedding-3-large",
+          "embeddings_size": 256
+        },
+        "description": "OpenAI API call for text-embeddings-3l"
+      },
+      {
+        "name": "openai-prompt-embeddings-3l",
+        "moduleName": "text-embeddings-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "text",
+        "configuration": {
+          "model_name": "text-embedding-3-large",
+          "embeddings_size": 256,
+          "hyde_model_name": ""
+        },
+        "description": "OpenAI API call for text-embeddings-3l"
+      }
+    ]
+  }
+}

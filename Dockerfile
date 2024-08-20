@@ -11,7 +11,7 @@ RUN pip install \
     openai
 
 
-# docker build -t gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12 -f Dockerfile .
-# docker push gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12
+# docker build -t gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13 -f Dockerfile .
+# docker push gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13
 
-# docker run -it gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.12 bash
+# docker run -it gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13 bash

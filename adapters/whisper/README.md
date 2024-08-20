@@ -16,8 +16,9 @@ For more information: [OpenAI - Whisper](https://openai.com/index/whisper/)
 
     * `model_id` : OpenAI Model's id to get response from.
     * `max_new_tokens`: Maximum number of new tokens that the model can generate in response.
-    * `chunk_length_s`: The length of each audio chunk, in seconds, that the model processes at a time. 
-    * `batch_size`: the number of audio chunks that are processed simultaneously during a single forward pass of the model.
+    * `chunk_length_s`: The length of each audio chunk, in seconds, that the model processes at a time.
+    * `batch_size`: the number of audio chunks that are processed simultaneously during a single forward pass of the
+      model.
 
 You can customize the configuration from SDK:
 
@@ -31,4 +32,4 @@ From the platform:
 
 Go to the model's page and edit the default configuration.
 
-![img.png](assets/model configuration.png)
+<img src="assets/model configuration.png" alt="Image of the pipeline">

@@ -40,4 +40,4 @@ From the platform:
 
 Go to the model's page and edit the default configuration.
 
-![img.png](assets/model configuration.png)
+<img src="assets/model configuration.png" alt="Image of the pipeline">

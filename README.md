@@ -26,13 +26,15 @@ This repository contains code for integrating `OpenAI` models into the `Dataloop
 <img src="assets/secret.png" alt="Image of the pipeline">
 
 4. When using your model, insert your key to the service:
+
 * Click on `Set Up Secrets`:
 
 ![img.png](assets/pipeline.png)
 
 * Search for `OPENAI_API_KEY` and choose your `secret` and save.
 
-![img.png](assets/update api key.png)
+<img src="assets/update api key.png" alt="Image of the pipeline">
+
 # Adapters
 
 ## Whisper
