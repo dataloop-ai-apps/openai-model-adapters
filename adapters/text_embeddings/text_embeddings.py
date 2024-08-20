@@ -30,12 +30,12 @@ class TextEmbeddings(dl.BaseModelAdapter):
                     if is_hyde is True:
                         messages = prompt_item.to_messages(model_name=self.configuration.get('hyde_model_name'))[-1]
                         if messages['role'] == 'assistant':
-                            text = messages['content'][0]['text']
+                            text = messages['content'][-1]['text']
                         else:
                             raise ValueError(f'Only assistant messages are supported for hyde model')
                     else:
                         messages = prompt_item.to_messages(include_assistant=False)[-1]
-                        text = messages['content'][0]['text']
+                        text = messages['content'][-1]['text']
 
                 except ValueError as e:
                     raise ValueError(f'Only mimetype text or prompt items are supported {e}')
