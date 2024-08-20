@@ -41,7 +41,7 @@
       {
         "name": "text-embeddings-module",
         "entryPoint": "adapters/text_embeddings/text_embeddings.py",
-        "className": "ModelAdapter",
+        "className": "TextEmbeddings",
         "computeConfig": "text-embeddings-deploy",
         "description": "Text Embeddings 3 Module",
         "versions": {
