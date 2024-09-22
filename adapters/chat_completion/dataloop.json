@@ -155,9 +155,9 @@
             "system.document.source"
           ],
           "stream": true,
-          "max_tokens": null,
-          "temperature": null,
-          "top_p": null
+          "max_tokens": 4096,
+          "temperature": 1.0,
+          "top_p": 1.0
         },
         "description": "OpenAI API call for gpt-4o"
       }
