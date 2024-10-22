@@ -7,7 +7,7 @@ logger = logging.getLogger('openai-text-embeddings')
 
 
 @dl.Package.decorators.module(name='model-adapter',
-                              description='Model Adapter for OpenAI Embedding models',
+                              description='Model Adapter for OpenAI Embeddings models',
                               init_inputs={'model_entity': dl.Model})
 class TextEmbeddings(dl.BaseModelAdapter):
 
