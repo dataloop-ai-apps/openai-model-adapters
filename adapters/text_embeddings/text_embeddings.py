@@ -6,15 +6,12 @@ import os
 logger = logging.getLogger('openai-text-embeddings')
 
 
-@dl.Package.decorators.module(name='model-adapter',
-                              description='Model Adapter for OpenAI Embeddings models',
-                              init_inputs={'model_entity': dl.Model})
 class TextEmbeddings(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
-        if os.environ.get("OPENAI_API_KEY", None) is None:
+        if os.environ.get("OPENAI_API_KEY") is None:
             raise ValueError(f"Missing API key: OPENAI_API_KEY")
 
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))

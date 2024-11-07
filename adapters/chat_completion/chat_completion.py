@@ -7,16 +7,13 @@ import os
 logger = logging.getLogger('openai-adapter')
 
 
-@dl.Package.decorators.module(name='model-adapter',
-                              description='Model Adapter for OpenAI Chat Completion models',
-                              init_inputs={'model_entity': dl.Model})
 class ModelAdapter(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
         self.adapter_defaults.upload_annotations = False
-        if os.environ.get("OPENAI_API_KEY", None) is None:
+        if os.environ.get("OPENAI_API_KEY") is None:
             raise ValueError(f"Missing API key")
 
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -85,7 +82,6 @@ if __name__ == '__main__':
 
     load_dotenv()
 
-    dl.setenv('rc')
     model = dl.models.get(model_id="")
     item = dl.items.get(item_id="")
     a = ModelAdapter(model)
