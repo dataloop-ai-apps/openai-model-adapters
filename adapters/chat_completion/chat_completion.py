@@ -33,7 +33,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             stream=stream,
             model=model_name
         )
-        if stream:
+        if stream is True:
             for chunk in response:
                 yield chunk.choices[0].delta.content or ""
         else:
