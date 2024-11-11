@@ -1,7 +1,7 @@
-import openai
 import dtlpy as dl
-import os
 import logging
+import openai
+import os
 
 logger = logging.getLogger('openai-text-embeddings')
 
@@ -11,13 +11,27 @@ class TextEmbeddings(dl.BaseModelAdapter):
     def load(self, local_path, **kwargs):
         """ Load configuration for OpenAI adapter
         """
-        if os.environ.get("OPENAI_API_KEY", None) is None:
+        if os.environ.get("OPENAI_API_KEY") is None:
             raise ValueError(f"Missing API key: OPENAI_API_KEY")
-        self.model_name = self.configuration.get('model_name', 'text-embedding-3-large')
+
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
+    def call_model(self, text):
+        model_name = self.configuration.get('model_name', 'text-embedding-3-large')
+        dimensions = self.model_entity.configuration.get('embeddings_size', 256)
+
+        response = self.client.embeddings.create(
+            input=text,
+            model=model_name,
+            dimensions=dimensions
+        )
+        embedding = response.data[0].embedding
+        return embedding
+
     def embed(self, batch, **kwargs):
+        hyde_model_name = self.configuration.get('hyde_model_name')
         embeddings = []
+
         for item in batch:
             if isinstance(item, str):
                 self.adapter_defaults.upload_features = True
@@ -28,7 +42,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
                     prompt_item = dl.PromptItem.from_item(item)
                     is_hyde = item.metadata.get('prompt', dict()).get('is_hyde', False)
                     if is_hyde is True:
-                        messages = prompt_item.to_messages(model_name=self.configuration.get('hyde_model_name'))[-1]
+                        messages = prompt_item.to_messages(model_name=hyde_model_name)[-1]
                         if messages['role'] == 'assistant':
                             text = messages['content'][-1]['text']
                         else:
@@ -40,12 +54,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
                 except ValueError as e:
                     raise ValueError(f'Only mimetype text or prompt items are supported {e}')
 
-            response = self.client.embeddings.create(
-                input=text,
-                model=self.model_name,
-                dimensions=self.model_entity.configuration.get('embeddings_size', 256)
-            )
-            embedding = response.data[0].embedding
+            embedding = self.call_model(text=text)
             logger.info(f'Extracted embeddings for text {item}: {embedding}')
             embeddings.append(embedding)
 
