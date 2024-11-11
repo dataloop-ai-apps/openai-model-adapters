@@ -24,9 +24,6 @@
     "computeConfigs": [
       {
         "name": "chat-completion-deploy",
-        "versions": {
-          "dtlpy": "1.93.9"
-        },
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
