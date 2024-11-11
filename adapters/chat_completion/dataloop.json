@@ -46,9 +46,6 @@
         "className": "ModelAdapter",
         "computeConfig": "chat-completion-deploy",
         "description": "Chat completion Module",
-        "versions": {
-          "dtlpy": "1.93.9"
-        },
         "integrations": [
           "dl-openai-api-key"
         ],
