@@ -22,9 +22,6 @@
     "computeConfigs": [
       {
         "name": "text-embeddings-deploy",
-        "versions": {
-          "dtlpy": "1.94.3"
-        },
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
