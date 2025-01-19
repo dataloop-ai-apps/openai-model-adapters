@@ -69,7 +69,6 @@ class ModelAdapter(dl.BaseModelAdapter):
                 prompt_item.add(message={"role": "assistant",
                                          "content": [{"mimetype": dl.PromptType.TEXT,
                                                       "value": response}]},
-                                stream=True,
                                 model_info={'name': model_name,
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
