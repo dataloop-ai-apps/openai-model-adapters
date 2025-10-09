@@ -1,6 +1,4 @@
-FROM docker.io/dataloopai/dtlpy-agent:cpu.py3.10.opencv
-USER root
-RUN apt update && apt install -y curl gpg software-properties-common
+FROM hub.dataloop.ai/dtlpy-runner-images/cpu:python3.10_opencv
 
 USER 1000
 WORKDIR /tmp
@@ -11,7 +9,7 @@ RUN pip install \
     openai
 
 
-# docker build -t gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13 -f Dockerfile .
-# docker push gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13
+# docker build -t gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14 -f Dockerfile .
+# docker push gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14
 
-# docker run -it gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.13 bash
+# docker run -it gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14 bash
