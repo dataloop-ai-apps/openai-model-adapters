@@ -117,6 +117,7 @@
         "scope": "project",
         "status": "pre-trained",
         "inputType": "text",
+        "outputType": "embedding",
         "configuration": {
           "model_name": "text-embedding-3-large",
           "embeddings_size": 256,
