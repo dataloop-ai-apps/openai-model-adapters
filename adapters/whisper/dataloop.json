@@ -25,12 +25,13 @@
         "runtime": {
           "podType": "regular-l",
           "concurrency": 1,
-          "runnerImage": "dataloopai/whisper-gpu.cuda.11.5.py3.8.pytorch2:1.0.1",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
-            "maxReplicas": 2
-          }
+            "maxReplicas": 2,
+            "queueLength": 100
+          },
+          "runnerImage": "dataloopai/whisper-gpu.cuda.11.5.py3.8.pytorch2:1.0.1"
         }
       }
     ],
