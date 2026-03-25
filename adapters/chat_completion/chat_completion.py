@@ -58,7 +58,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             if len(nearest_items) > 0:
                 context = prompt_item.build_context(nearest_items=nearest_items,
                                                     add_metadata=add_metadata)
-                logger.info(f"Nearest items Context: {context}")
+                logger.info("Nearest items context loaded (length=%d)", len(context))
                 messages.append({"role": "assistant", "content": context})
 
             stream_response = self.call_model(messages=messages)

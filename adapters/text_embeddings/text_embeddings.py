@@ -53,7 +53,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
                     raise ValueError(f'Only mimetype text or prompt items are supported {e}')
 
             embedding = self.call_model(text=text)
-            logger.info(f'Extracted embeddings for text {item}: {embedding}')
+            logger.info('Extracted embeddings successfully (dimensions=%d)', len(embedding))
             embeddings.append(embedding)
 
         return embeddings
