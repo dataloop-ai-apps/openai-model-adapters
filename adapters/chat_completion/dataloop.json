@@ -1,5 +1,5 @@
 {
-  "name": "chat-completion",
+  "name": "chat-completion-husam",
   "version": "0.0.35",
   "attributes": {
     "Provider": "Open AI",
@@ -12,14 +12,9 @@
     ],
     "Deployed By": "Dataloop"
   },
-  "displayName": "Chat Completion",
+  "displayName": "Chat Completion Husam",
   "description": "Chat completion Model Application by Open AI",
-  "scope": "public",
-  "codebase": {
-    "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
-    "gitTag": "0.0.35"
-  },
+  "scope": "project",
   "components": {
     "computeConfigs": [
       {

@@ -253,8 +253,12 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
 
     load_dotenv()
+    dl.setenv("prod")
+    # dl.logout()
+    if dl.token_expired():
+        dl.login()
 
-    model = dl.models.get(model_id="")
-    item = dl.items.get(item_id="")
+    model = dl.models.get(model_id="69c7a6d26b4d6a4adc88955b")
+    item = dl.items.get(item_id="69c7a8ca9986f9db2631392a")
     adapter = ModelAdapter(model)
     adapter.predict_items([item])
