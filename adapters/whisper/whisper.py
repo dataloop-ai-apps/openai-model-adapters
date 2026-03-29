@@ -51,9 +51,9 @@ class Whisper(dl.BaseModelAdapter):
         batch_annotations = list()
         for item in batch:
             filename = item.download(overwrite=True)
-            logger.info(f'WhisperAdapter predicting {filename},  started')
+            logger.info('WhisperAdapter prediction started for item %s', item.id)
             result = self.pipe(filename)
-            logger.info(f'WhisperAdapter predicting {filename}, done')
+            logger.info('WhisperAdapter prediction completed for item %s', item.id)
             # build the dtlpy annotations
             chunks = result['chunks']
             builder = item.annotations.builder()
