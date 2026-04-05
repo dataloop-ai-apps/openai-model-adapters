@@ -142,6 +142,11 @@ class ModelAdapter(dl.BaseModelAdapter):
             if system_prompt:
                 messages.insert(0, {"role": "system", "content": system_prompt})
 
+            add_metadata = self.configuration.get("add_metadata")
+            context = trace.build_context(add_metadata=add_metadata)
+            if context:
+                messages.append({"role": "assistant", "content": context})
+
             for tool_round in range(MAX_TOOL_ROUNDS):
                 stream_response = self.call_model(messages=messages, tools=TOOLS)
                 response = self._stream_to_trace(trace, stream_response, model_name)
