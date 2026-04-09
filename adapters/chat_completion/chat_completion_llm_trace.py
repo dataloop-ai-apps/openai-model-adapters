@@ -158,13 +158,13 @@ class ModelAdapter(dl.BaseModelAdapter):
                         "tool_calls": self._tool_calls,
                     }
                     trace.add_message(assistant_msg)
-                    messages.append(assistant_msg)
+                    # messages.append(assistant_msg)
 
                     for tc in self._tool_calls:
                         result = self._execute_tool(tc["function"]["name"], tc["function"]["arguments"])
                         tool_msg = {"role": "tool", "tool_call_id": tc["id"], "content": result}
                         trace.add_message(tool_msg)
-                        messages.append(tool_msg)
+                        # messages.append(tool_msg)
 
                     try:
                         trace.update()
