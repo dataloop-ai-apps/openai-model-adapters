@@ -152,13 +152,8 @@ class ModelAdapter(dl.BaseModelAdapter):
                 response = self._stream_to_trace(trace, stream_response, model_name)
 
                 if self._completion_info.get("finish_reason") == "tool_calls" and self._tool_calls:
-                    assistant_msg = {
-                        "role": "assistant",
-                        "content": response or None,
-                        "tool_calls": self._tool_calls,
-                    }
-                    trace.add_message(assistant_msg)
-                    messages.append(assistant_msg)
+                    trace.messages[-1]["tool_calls"] = self._tool_calls
+                    messages.append(trace.messages[-1])
 
                     for tc in self._tool_calls:
                         result = self._execute_tool(tc["function"]["name"], tc["function"]["arguments"])
