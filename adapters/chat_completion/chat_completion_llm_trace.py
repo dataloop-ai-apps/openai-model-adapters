@@ -138,28 +138,33 @@ class ModelAdapter(dl.BaseModelAdapter):
         model_name = self.model_entity.name
 
         for trace in batch:
-            messages = list(trace.messages)
+            has_system = trace.messages and trace.messages[0]["role"] == "system"
             if system_prompt:
-                messages.insert(0, {"role": "system", "content": system_prompt})
+                if has_system:
+                    trace.messages[0]["content"] = system_prompt
+                else:
+                    trace.messages.insert(0, {"role": "system", "content": system_prompt})
+            elif has_system:
+                trace.messages.pop(0)
 
             add_metadata = self.configuration.get("add_metadata")
             context = trace.build_context(add_metadata=add_metadata)
             if context:
-                messages.append({"role": "assistant", "content": context})
+                trace.messages.append({"role": "assistant", "content": context})
 
             for tool_round in range(MAX_TOOL_ROUNDS):
-                stream_response = self.call_model(messages=messages, tools=TOOLS)
+                stream_response = self.call_model(messages=trace.messages, tools=TOOLS)
                 response = self._stream_to_trace(trace, stream_response, model_name)
 
                 if self._completion_info.get("finish_reason") == "tool_calls" and self._tool_calls:
+                    if trace.messages[-1]["role"] != "assistant":
+                        trace.messages.append({"role": "assistant", "content": response})
                     trace.messages[-1]["tool_calls"] = self._tool_calls
-                    messages.append(trace.messages[-1])
 
                     for tc in self._tool_calls:
                         result = self._execute_tool(tc["function"]["name"], tc["function"]["arguments"])
                         tool_msg = {"role": "tool", "tool_call_id": tc["id"], "content": result}
                         trace.add_message(tool_msg)
-                        messages.append(tool_msg)
 
                     try:
                         trace.update()
