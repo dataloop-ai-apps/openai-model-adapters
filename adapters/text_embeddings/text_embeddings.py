@@ -1,14 +1,10 @@
 import os
-import sys
+import logging
 
 import dtlpy as dl
 import openai
-import logging
 
-_adapters = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if _adapters not in sys.path:
-    sys.path.insert(0, _adapters)
-from common.dataloop_app_service import DataloopAppServiceClient  # noqa: E402
+from adapters.common.dataloop_app_service import DataloopAppServiceClient
 
 logger = logging.getLogger("openai-text-embeddings")
 

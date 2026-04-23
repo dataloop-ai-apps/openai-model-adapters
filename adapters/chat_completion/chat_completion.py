@@ -1,16 +1,11 @@
 import os
-import sys
+import logging
 
 import dtlpy as dl
 import openai
 from openai import NOT_GIVEN
-import logging
 
-# Ensure adapters/ is on path (Dataloop may load this module as a file path, not a package)
-_adapters = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if _adapters not in sys.path:
-    sys.path.insert(0, _adapters)
-from common.dataloop_app_service import DataloopAppServiceClient  # noqa: E402
+from adapters.common.dataloop_app_service import DataloopAppServiceClient
 
 logger = logging.getLogger("openai-adapter")
 
