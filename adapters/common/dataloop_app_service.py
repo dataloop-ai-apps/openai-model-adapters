@@ -1,7 +1,7 @@
 """
-Resolve Dataloop app routes and use JWT-APP cookie auth for OpenAI-compatible
-downloadable services (e.g. ollama-server on Dataloop). Health check uses
-OpenAI GET /v1/models (Ollama does not expose NIM /manifest).
+Resolve Dataloop app-service routes and use JWT-APP cookie auth for
+OpenAI-compatible services (e.g. ollama-server on Dataloop).
+Health check uses OpenAI GET /v1/models.
 """
 
 from __future__ import annotations
@@ -18,10 +18,18 @@ import requests
 
 SSL_VERIFY = os.environ.get("DATALOOP_SSL_VERIFY", "true").lower() not in ("0", "false", "no")
 
+_log = logging.getLogger("openai-adapter")
 
-def get_downloadable_endpoint_and_cookie(app_id: str):
+
+def _strip_bearer(request: httpx.Request):
+    """Service authenticates via JWT-APP cookie; strip the dummy Bearer token."""
+    request.headers.pop("authorization", None)
+
+
+def resolve_app_service_endpoint(app_id: str):
     """
-    Resolve Dataloop app route and obtain JWT-APP cookie via redirect.
+    Resolve a Dataloop app-service route by following the gateway redirect
+    chain to discover the real service URL and capture the JWT-APP cookie.
 
     Returns:
         (base_url, session): base_url ends with /v1; session is requests.Session.
@@ -30,16 +38,17 @@ def get_downloadable_endpoint_and_cookie(app_id: str):
     route = list(app.routes.values())[0].rstrip("/")
     base_before = "/".join(route.split("/")[:-1])
     session = requests.Session()
-    resp = session.get(base_before, headers=dl.client_api.auth, verify=SSL_VERIFY)
-    base_url = resp.url.rstrip("/")
+    resp = session.get(f"{base_before}/models", headers=dl.client_api.auth, verify=SSL_VERIFY)
+    _log.debug("Redirect chain resolved to: %s (cookies: %s)", resp.url, dict(session.cookies))
+    base_url = resp.url.split("/models")[0]
     if not base_url.endswith("/v1"):
         base_url = f"{base_url}/v1"
     return base_url, session
 
 
-class DataloopDownloadableContext:
+class DataloopAppServiceClient:
     """
-    OpenAI client + session for a Dataloop app_id (cookie-only auth).
+    OpenAI client + session for a Dataloop app-service (cookie-only auth).
     Call check_jwt_expiration() before batched or long inference.
     """
 
@@ -60,27 +69,30 @@ class DataloopDownloadableContext:
         )
 
     def _rebuild_client(self) -> None:
-        self.base_url, self.current_session = get_downloadable_endpoint_and_cookie(
+        self.base_url, self.current_session = resolve_app_service_endpoint(
             self.app_id
         )
         cookie_header = self._cookie_header()
-        self._log.info("Using downloadable endpoint, base URL: %s", self.base_url)
+        self._log.info("Using app-service endpoint: %s", self.base_url)
         self.client = openai.OpenAI(
             base_url=self.base_url,
-            api_key="",
+            api_key="unused",
             default_headers={"Cookie": cookie_header},
-            http_client=httpx.Client(verify=SSL_VERIFY),
+            http_client=httpx.Client(
+                verify=SSL_VERIFY,
+                event_hooks={"request": [_strip_bearer]},
+            ),
         )
         self.model_entity.configuration["base_url"] = self.base_url
         self.model_entity.update()
         try:
             self.client.models.list()
         except Exception as e:
-            self._log.error("Downloadable health check (models.list) failed: %s", e)
+            self._log.error("App-service health check (models.list) failed: %s", e)
             raise ValueError(
-                f"Failed to reach downloadable OpenAI API at {self.base_url}: {e}"
+                f"Failed to reach app-service OpenAI API at {self.base_url}: {e}"
             ) from e
-        self._log.info("Downloadable endpoint ready at %s", self.base_url)
+        self._log.info("App-service ready at %s", self.base_url)
 
     def check_jwt_expiration(self, margin_seconds: int = 60) -> None:
         if self.current_session is None:

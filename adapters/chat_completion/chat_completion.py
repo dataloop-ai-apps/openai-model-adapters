@@ -10,7 +10,7 @@ import logging
 _adapters = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _adapters not in sys.path:
     sys.path.insert(0, _adapters)
-from common.dataloop_downloadable import DataloopDownloadableContext  # noqa: E402
+from common.dataloop_app_service import DataloopAppServiceClient  # noqa: E402
 
 logger = logging.getLogger("openai-adapter")
 
@@ -21,21 +21,21 @@ class ModelAdapter(dl.BaseModelAdapter):
         """ Load configuration for OpenAI adapter
         """
         self.adapter_defaults.upload_annotations = False
-        self._downloadable = None
-        self.using_downloadable = False
+        self._app_service = None
+        self.using_app_service = False
 
         if self.configuration.get("app_id"):
-            self.using_downloadable = True
-            self._downloadable = DataloopDownloadableContext(
+            self.using_app_service = True
+            self._app_service = DataloopAppServiceClient(
                 self.configuration["app_id"],
                 self.model_entity,
                 logger,
             )
-            self.client = self._downloadable.client
+            self.client = self._app_service.client
             return
 
         if os.environ.get("OPENAI_API_KEY") is None:
-            raise ValueError("Missing API key: set OPENAI_API_KEY or use app_id for a downloadable app")
+            raise ValueError("Missing API key: set OPENAI_API_KEY or use app_id for an app service")
 
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -67,9 +67,9 @@ class ModelAdapter(dl.BaseModelAdapter):
         return prompt_item
 
     def predict(self, batch, **kwargs):
-        if self.using_downloadable and self._downloadable is not None:
-            self._downloadable.check_jwt_expiration()
-            self.client = self._downloadable.client
+        if self.using_app_service and self._app_service is not None:
+            self._app_service.check_jwt_expiration()
+            self.client = self._app_service.client
 
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         add_metadata = self.configuration.get("add_metadata")
@@ -108,7 +108,8 @@ if __name__ == '__main__':
 
     load_dotenv()
 
-    model = dl.models.get(model_id="")
-    item = dl.items.get(item_id="")
+    # dl.setenv("rc")
+    model = dl.models.get(model_id="69e9d23554e03d3aaa2f061b")
+    item = dl.items.get(item_id="69e9da8b53fd889de038728a")
     a = ModelAdapter(model)
     a.predict_items([item])

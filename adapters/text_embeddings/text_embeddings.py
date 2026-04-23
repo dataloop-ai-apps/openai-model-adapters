@@ -8,7 +8,7 @@ import logging
 _adapters = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _adapters not in sys.path:
     sys.path.insert(0, _adapters)
-from common.dataloop_downloadable import DataloopDownloadableContext  # noqa: E402
+from common.dataloop_app_service import DataloopAppServiceClient  # noqa: E402
 
 logger = logging.getLogger("openai-text-embeddings")
 
@@ -17,22 +17,22 @@ class TextEmbeddings(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         """Load configuration for OpenAI adapter or a Dataloop downloadable app (app_id)."""
-        self._downloadable = None
-        self.using_downloadable = False
+        self._app_service = None
+        self.using_app_service = False
 
         if self.configuration.get("app_id"):
-            self.using_downloadable = True
-            self._downloadable = DataloopDownloadableContext(
+            self.using_app_service = True
+            self._app_service = DataloopAppServiceClient(
                 self.configuration["app_id"],
                 self.model_entity,
                 logger,
             )
-            self.client = self._downloadable.client
+            self.client = self._app_service.client
             return
 
         if os.environ.get("OPENAI_API_KEY") is None:
             raise ValueError(
-                "Missing API key: set OPENAI_API_KEY or use app_id for a downloadable app"
+                "Missing API key: set OPENAI_API_KEY or use app_id for an app service"
             )
 
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -43,7 +43,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
             "input": text,
             "model": model_name,
         }
-        if not self.using_downloadable:
+        if not self.using_app_service:
             create_kwargs["dimensions"] = self.model_entity.configuration.get(
                 "embeddings_size", 256
             )
@@ -52,9 +52,9 @@ class TextEmbeddings(dl.BaseModelAdapter):
         return embedding
 
     def embed(self, batch, **kwargs):
-        if self.using_downloadable and self._downloadable is not None:
-            self._downloadable.check_jwt_expiration()
-            self.client = self._downloadable.client
+        if self.using_app_service and self._app_service is not None:
+            self._app_service.check_jwt_expiration()
+            self.client = self._app_service.client
 
         hyde_model_name = self.configuration.get("hyde_model_name")
         embeddings = []
