@@ -1,10 +1,18 @@
-from openai import NOT_GIVEN
-import dtlpy as dl
-import logging
-import openai
 import os
+import sys
 
-logger = logging.getLogger('openai-adapter')
+import dtlpy as dl
+import openai
+from openai import NOT_GIVEN
+import logging
+
+# Ensure adapters/ is on path (Dataloop may load this module as a file path, not a package)
+_adapters = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _adapters not in sys.path:
+    sys.path.insert(0, _adapters)
+from common.dataloop_downloadable import DataloopDownloadableContext  # noqa: E402
+
+logger = logging.getLogger("openai-adapter")
 
 
 class ModelAdapter(dl.BaseModelAdapter):
@@ -13,8 +21,21 @@ class ModelAdapter(dl.BaseModelAdapter):
         """ Load configuration for OpenAI adapter
         """
         self.adapter_defaults.upload_annotations = False
+        self._downloadable = None
+        self.using_downloadable = False
+
+        if self.configuration.get("app_id"):
+            self.using_downloadable = True
+            self._downloadable = DataloopDownloadableContext(
+                self.configuration["app_id"],
+                self.model_entity,
+                logger,
+            )
+            self.client = self._downloadable.client
+            return
+
         if os.environ.get("OPENAI_API_KEY") is None:
-            raise ValueError(f"Missing API key")
+            raise ValueError("Missing API key: set OPENAI_API_KEY or use app_id for a downloadable app")
 
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -35,6 +56,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         )
         if stream is True:
             for chunk in response:
+                if not chunk.choices:
+                    continue
                 yield chunk.choices[0].delta.content or ""
         else:
             yield response.choices[0].message.content or ""
@@ -44,6 +67,10 @@ class ModelAdapter(dl.BaseModelAdapter):
         return prompt_item
 
     def predict(self, batch, **kwargs):
+        if self.using_downloadable and self._downloadable is not None:
+            self._downloadable.check_jwt_expiration()
+            self.client = self._downloadable.client
+
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         add_metadata = self.configuration.get("add_metadata")
         model_name = self.model_entity.name

@@ -6,7 +6,8 @@ ENV HOME=/tmp
 RUN pip install \
     transformers \
     accelerate \
-    openai
+    openai \
+    PyJWT
 
 
 # docker build -t gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14 -f Dockerfile .
