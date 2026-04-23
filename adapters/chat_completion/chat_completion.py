@@ -1,10 +1,13 @@
-from openai import NOT_GIVEN
-import dtlpy as dl
-import logging
-import openai
 import os
+import logging
 
-logger = logging.getLogger('openai-adapter')
+import dtlpy as dl
+import openai
+from openai import NOT_GIVEN
+
+from adapters.common.dataloop_app_service import DataloopAppServiceClient
+
+logger = logging.getLogger("openai-adapter")
 
 
 class ModelAdapter(dl.BaseModelAdapter):
@@ -13,8 +16,21 @@ class ModelAdapter(dl.BaseModelAdapter):
         """ Load configuration for OpenAI adapter
         """
         self.adapter_defaults.upload_annotations = False
+        self._app_service = None
+        self.using_app_service = False
+
+        if self.configuration.get("app_id"):
+            self.using_app_service = True
+            self._app_service = DataloopAppServiceClient(
+                self.configuration["app_id"],
+                self.model_entity,
+                logger,
+            )
+            self.client = self._app_service.client
+            return
+
         if os.environ.get("OPENAI_API_KEY") is None:
-            raise ValueError(f"Missing API key")
+            raise ValueError("Missing API key: set OPENAI_API_KEY or use app_id for an app service")
 
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -35,6 +51,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         )
         if stream is True:
             for chunk in response:
+                if not chunk.choices:
+                    continue
                 yield chunk.choices[0].delta.content or ""
         else:
             yield response.choices[0].message.content or ""
@@ -44,6 +62,10 @@ class ModelAdapter(dl.BaseModelAdapter):
         return prompt_item
 
     def predict(self, batch, **kwargs):
+        if self.using_app_service and self._app_service is not None:
+            self._app_service.check_jwt_expiration()
+            self.client = self._app_service.client
+
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         add_metadata = self.configuration.get("add_metadata")
         model_name = self.model_entity.name
@@ -80,7 +102,7 @@ if __name__ == '__main__':
     from dotenv import load_dotenv
 
     load_dotenv()
-
+    
     model = dl.models.get(model_id="")
     item = dl.items.get(item_id="")
     a = ModelAdapter(model)
