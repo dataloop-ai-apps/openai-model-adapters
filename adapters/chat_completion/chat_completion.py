@@ -107,9 +107,8 @@ if __name__ == '__main__':
     from dotenv import load_dotenv
 
     load_dotenv()
-
-    # dl.setenv("rc")
-    model = dl.models.get(model_id="69e9d23554e03d3aaa2f061b")
-    item = dl.items.get(item_id="69e9da8b53fd889de038728a")
+    
+    model = dl.models.get(model_id="")
+    item = dl.items.get(item_id="")
     a = ModelAdapter(model)
     a.predict_items([item])
