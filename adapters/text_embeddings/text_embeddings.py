@@ -4,32 +4,16 @@ import logging
 import dtlpy as dl
 import openai
 
-from adapters.common.dataloop_app_service import DataloopAppServiceClient
-
 logger = logging.getLogger("openai-text-embeddings")
 
 
 class TextEmbeddings(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
-        """Load configuration for OpenAI adapter or a Dataloop downloadable app (app_id)."""
         self._app_service = None
-        self.using_app_service = False
-
-        if self.configuration.get("app_id"):
-            self.using_app_service = True
-            self._app_service = DataloopAppServiceClient(
-                self.configuration["app_id"],
-                self.model_entity,
-                logger,
-            )
-            self.client = self._app_service.client
-            return
 
         if os.environ.get("OPENAI_API_KEY") is None:
-            raise ValueError(
-                "Missing API key: set OPENAI_API_KEY or use app_id for an app service"
-            )
+            raise ValueError("Missing API key: set OPENAI_API_KEY env var")
 
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -39,7 +23,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
             "input": text,
             "model": model_name,
         }
-        if not self.using_app_service:
+        if self._app_service is None:
             create_kwargs["dimensions"] = self.model_entity.configuration.get(
                 "embeddings_size", 256
             )
@@ -48,7 +32,8 @@ class TextEmbeddings(dl.BaseModelAdapter):
         return embedding
 
     def embed(self, batch, **kwargs):
-        if self.using_app_service and self._app_service is not None:
+        # Re-sync client after JWT refresh (hosted subclass may rebuild it)
+        if self._app_service is not None:
             self._app_service.check_jwt_expiration()
             self.client = self._app_service.client
 
