@@ -104,7 +104,7 @@
         "status": "pre-trained",
         "inputType": "text",
         "configuration": {
-          "model_name": "nomic-embed-text",
+          "model_name": "",
           "app_id": ""
         },
         "description": "Text embeddings via Dataloop-hosted service"

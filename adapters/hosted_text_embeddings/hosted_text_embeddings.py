@@ -14,7 +14,7 @@ class HostedTextEmbeddings(TextEmbeddings):
         if not app_id:
             raise ValueError("app_id is required for hosted text embeddings")
 
-        model_name = self.configuration.get("model_name", "phi4-mini:latest")
+        model_name = self.configuration.get("model_name", "nomic-embed-text:latest")
         logger.info("Loading hosted text embeddings, model: %s, app_id: %s", model_name, app_id)
 
         self._app_service = DataloopAppServiceClient(
