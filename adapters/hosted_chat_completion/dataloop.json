@@ -1,6 +1,6 @@
 {
   "name": "hosted-chat-completion",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "attributes": {
     "Provider": "Dataloop",
     "Category": "Model",
