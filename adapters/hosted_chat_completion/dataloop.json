@@ -83,7 +83,7 @@
               }
             ],
             "displayName": "Evaluate a Model",
-            "displayIcon": "",
+            "displayIcon": "icon-dl-dell",
             "description": "Function to evaluate hosted chat completion model performance"
           },
           {
@@ -108,7 +108,7 @@
               }
             ],
             "displayName": "Predict Items",
-            "displayIcon": "",
+            "displayIcon": "icon-dl-dell",
             "description": "Hosted chat completion API"
           },
           {
@@ -127,7 +127,7 @@
             ],
             "output": [],
             "displayName": "Predict Dataset",
-            "displayIcon": "",
+            "displayIcon": "icon-dl-dell",
             "description": "Hosted Chat Completion Dataset"
           }
         ]

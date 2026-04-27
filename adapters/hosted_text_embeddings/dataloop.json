@@ -71,7 +71,7 @@
               }
             ],
             "displayName": "Embed Items",
-            "displayIcon": "",
+            "displayIcon": "icon-dl-dell",
             "description": "The inference function of the model."
           },
           {
@@ -90,7 +90,7 @@
             ],
             "output": [],
             "displayName": "Embed Dataset",
-            "displayIcon": "",
+            "displayIcon": "icon-dl-dell",
             "description": "Inference function of the model on a dataset."
           }
         ]
