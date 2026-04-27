@@ -1,7 +1,7 @@
 {
   "name": "hosted-text-embeddings",
   "displayName": "Hosted Text Embeddings",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "description": "Text embeddings via a Dataloop-hosted OpenAI-compatible service",
   "scope": "public",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
-    "gitTag": "0.0.36"
+    "gitTag": "0.0.37"
   },
   "components": {
     "computeConfigs": [
