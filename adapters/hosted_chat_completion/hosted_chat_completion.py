@@ -11,6 +11,7 @@ class HostedChatCompletion(ModelAdapter):
 
     def load(self, local_path, **kwargs):
         self.adapter_defaults.upload_annotations = False
+        self.timeout = self.configuration.get("timeout", 900)
 
         app_id = self.configuration.get("app_id")
         if not app_id:
@@ -23,5 +24,10 @@ class HostedChatCompletion(ModelAdapter):
             app_id,
             self.model_entity,
             logger,
+            timeout=self.timeout,
         )
         self.client = self._app_service.client
+
+    def _hosted_inference_prepare(self):
+        model_name = self.configuration.get("model_name", "phi4-mini:latest")
+        self._app_service.warmup_native_chat(model_name)

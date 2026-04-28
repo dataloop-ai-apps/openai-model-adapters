@@ -50,29 +50,69 @@ class DataloopAppServiceClient:
     """
     OpenAI client + session for a Dataloop app-service (cookie-only auth).
     Call check_jwt_expiration() before batched or long inference.
+    Includes native warmup to pre-load models before the first /v1 call.
     """
 
-    def __init__(self, app_id: str, model_entity, log: logging.Logger) -> None:
+    def __init__(self, app_id: str, model_entity, log: logging.Logger, timeout: int = 900) -> None:
         self.app_id = app_id
         self.model_entity = model_entity
         self._log = log
+        self.timeout = timeout
         self.base_url = None
         self.current_session: requests.Session | None = None
         self.client: openai.OpenAI | None = None
         self._rebuild_client()
 
-    def _cookie_header(self) -> str:
-        if self.current_session is None:
-            return ""
-        return "; ".join(
-            f"{c.name}={c.value}" for c in self.current_session.cookies
+    def _post_native(self, path: str, payload: dict):
+        origin = self.base_url.removesuffix("/v1").rstrip("/")
+        return self.current_session.post(
+            f"{origin}{path}",
+            json=payload,
+            verify=SSL_VERIFY,
+            timeout=self.timeout,
         )
+
+    def warmup_native_chat(self, model: str) -> None:
+        """POST /api/generate before /v1/chat/completions — loads model if evicted, resets keep_alive."""
+        if self.current_session is None:
+            return
+        keep_alive = self.model_entity.configuration.get("keep_alive", "10m")
+        payload = {
+            "model": model,
+            "prompt": "",
+            "keep_alive": keep_alive,
+            "stream": False,
+        }
+        try:
+            self._log.info(
+                "Hosted warmup (chat): POST /api/generate model=%s keep_alive=%s",
+                model,
+                keep_alive,
+            )
+            self._post_native("/api/generate", payload).raise_for_status()
+        except Exception as e:
+            self._log.warning("Hosted native chat warmup failed (non-fatal): %s", e)
+
+    def warmup_native_embed(self, model: str) -> None:
+        """POST /api/embeddings before /v1/embeddings — loads model if evicted, resets keep_alive."""
+        if self.current_session is None:
+            return
+        try:
+            self._log.info("Hosted warmup (embed): POST /api/embeddings model=%s", model)
+            self._post_native(
+                "/api/embeddings",
+                {"model": model, "input": "."},
+            ).raise_for_status()
+        except Exception as e:
+            self._log.warning("Hosted native embed warmup failed (non-fatal): %s", e)
 
     def _rebuild_client(self) -> None:
         self.base_url, self.current_session = resolve_app_service_endpoint(
             self.app_id
         )
-        cookie_header = self._cookie_header()
+        cookie_header = "; ".join(
+            f"{c.name}={c.value}" for c in self.current_session.cookies
+        )
         self._log.info("Using app-service endpoint: %s", self.base_url)
         self.client = openai.OpenAI(
             base_url=self.base_url,
@@ -80,6 +120,7 @@ class DataloopAppServiceClient:
             default_headers={"Cookie": cookie_header},
             http_client=httpx.Client(
                 verify=SSL_VERIFY,
+                timeout=httpx.Timeout(connect=60.0, read=float(self.timeout), write=60.0, pool=60.0),
                 event_hooks={"request": [_strip_bearer]},
             ),
         )

@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 import dtlpy as dl
 import openai
@@ -13,6 +13,7 @@ class ModelAdapter(dl.BaseModelAdapter):
     def load(self, local_path, **kwargs):
         self.adapter_defaults.upload_annotations = False
         self._app_service = None
+        self.timeout = self.configuration.get("timeout", 900)
 
         if os.environ.get("OPENAI_API_KEY") is None:
             raise ValueError("Missing API key: set OPENAI_API_KEY env var")
@@ -32,7 +33,8 @@ class ModelAdapter(dl.BaseModelAdapter):
             temperature=temperature,
             top_p=top_p,
             stream=stream,
-            model=model_name
+            model=model_name,
+            timeout=self.timeout,
         )
         if stream is True:
             for chunk in response:
@@ -46,11 +48,15 @@ class ModelAdapter(dl.BaseModelAdapter):
         prompt_item = dl.PromptItem.from_item(item)
         return prompt_item
 
+    def _hosted_inference_prepare(self):
+        """Hosted adapters override (native warmup before first /v1 call)."""
+
     def predict(self, batch, **kwargs):
         # Re-sync client after JWT refresh (hosted subclass may rebuild it)
         if self._app_service is not None:
             self._app_service.check_jwt_expiration()
             self.client = self._app_service.client
+            self._hosted_inference_prepare()
 
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         add_metadata = self.configuration.get("add_metadata")

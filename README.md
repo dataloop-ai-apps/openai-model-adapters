@@ -37,10 +37,15 @@ This repository contains code for integrating `OpenAI` models into the `Dataloop
 
 # Adapters
 
-## Whisper
+## Chat Completion
 
 - [Chat Completion](adapters/chat_completion/README.md)
+- [Hosted Chat Completion](adapters/hosted_chat_completion/README.md)
 
-## Chat Completion
+## Text Embeddings
+
+- [Hosted Text Embeddings](adapters/hosted_text_embeddings/README.md)
+
+## Whisper
 
 - [Whisper](adapters/whisper/README.md)

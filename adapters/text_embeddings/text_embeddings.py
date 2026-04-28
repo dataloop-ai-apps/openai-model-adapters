@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 import dtlpy as dl
 import openai
@@ -11,6 +11,7 @@ class TextEmbeddings(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         self._app_service = None
+        self.timeout = self.configuration.get("timeout", 900)
 
         if os.environ.get("OPENAI_API_KEY") is None:
             raise ValueError("Missing API key: set OPENAI_API_KEY env var")
@@ -27,15 +28,20 @@ class TextEmbeddings(dl.BaseModelAdapter):
             create_kwargs["dimensions"] = self.model_entity.configuration.get(
                 "embeddings_size", 256
             )
+        create_kwargs["timeout"] = self.timeout
         response = self.client.embeddings.create(**create_kwargs)
         embedding = response.data[0].embedding
         return embedding
+
+    def _hosted_inference_prepare(self):
+        """Hosted adapters override (native warmup before first /v1 call)."""
 
     def embed(self, batch, **kwargs):
         # Re-sync client after JWT refresh (hosted subclass may rebuild it)
         if self._app_service is not None:
             self._app_service.check_jwt_expiration()
             self.client = self._app_service.client
+            self._hosted_inference_prepare()
 
         hyde_model_name = self.configuration.get("hyde_model_name")
         embeddings = []
