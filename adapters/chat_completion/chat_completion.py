@@ -55,19 +55,28 @@ class ModelAdapter(dl.BaseModelAdapter):
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         add_metadata = self.configuration.get("add_metadata")
         model_name = self.model_entity.name
+        include_assistant = self.configuration.get("include_assistant", True)
+        llm_model_name = self.configuration.get("model_name", "")
+        is_phi = "phi" in llm_model_name.lower()
 
         for prompt_item in batch:
-            # Get all messages including model annotations
-            messages = prompt_item.to_messages(model_name=model_name)
-            messages.insert(0, {"role": "system",
-                                "content": system_prompt})
-
             nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
             if len(nearest_items) > 0:
                 context = prompt_item.build_context(nearest_items=nearest_items,
                                                     add_metadata=add_metadata)
                 logger.info(f"Nearest items Context: {context}")
-                messages.append({"role": "assistant", "content": context})
+
+            messages = prompt_item.to_messages(model_name=model_name, include_assistant=include_assistant)
+
+            if len(nearest_items) > 0:
+                if is_phi:
+                    messages.insert(0, {"role": "system",
+                                        "content": f"{system_prompt}\n\nContext:\n{context}"})
+                else:
+                    messages.insert(0, {"role": "system", "connow tent": system_prompt})
+                    messages.append({"role": "assistant", "content": context})
+            else:
+                messages.insert(0, {"role": "system", "content": system_prompt})
 
             stream_response = self.call_model(messages=messages)
             response = ""

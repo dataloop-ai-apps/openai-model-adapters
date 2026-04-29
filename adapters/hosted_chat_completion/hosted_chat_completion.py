@@ -19,11 +19,9 @@ class HostedChatCompletion(ModelAdapter):
         model_name = self.configuration.get("model_name", "phi4-mini:latest")
         logger.info("Loading hosted chat completion, model: %s, app_id: %s", model_name, app_id)
 
-        timeout = self.configuration.get("timeout", 600)
         self._app_service = DataloopAppServiceClient(
             app_id,
             self.model_entity,
             logger,
-            timeout=timeout,
         )
         self.client = self._app_service.client

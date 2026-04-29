@@ -52,11 +52,10 @@ class DataloopAppServiceClient:
     Call check_jwt_expiration() before batched or long inference.
     """
 
-    def __init__(self, app_id: str, model_entity, log: logging.Logger, timeout: int = 600) -> None:
+    def __init__(self, app_id: str, model_entity, log: logging.Logger) -> None:
         self.app_id = app_id
         self.model_entity = model_entity
         self._log = log
-        self.timeout = timeout
         self.base_url = None
         self.current_session: requests.Session | None = None
         self.client: openai.OpenAI | None = None
@@ -81,7 +80,6 @@ class DataloopAppServiceClient:
             default_headers={"Cookie": cookie_header},
             http_client=httpx.Client(
                 verify=SSL_VERIFY,
-                timeout=httpx.Timeout(connect=30.0, read=float(self.timeout), write=30.0, pool=30.0),
                 event_hooks={"request": [_strip_bearer]},
             ),
         )
