@@ -362,3 +362,4 @@ pyrightconfig.json
 /idea
 *.whl
 /new-sdk-env
+/scripts/
