@@ -55,20 +55,44 @@ class ModelAdapter(dl.BaseModelAdapter):
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         add_metadata = self.configuration.get("add_metadata")
         model_name = self.model_entity.name
+        include_assistant = self.configuration.get("include_assistant", True)
+        inject_context_to_user = self.configuration.get("inject_context_to_user", False) # inject the context to user, if true, otherwise append the context as a new assistant message
 
         for prompt_item in batch:
-            # Get all messages including model annotations
-            messages = prompt_item.to_messages(model_name=model_name)
-            messages.insert(0, {"role": "system",
-                                "content": system_prompt})
-
             nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
             if len(nearest_items) > 0:
                 context = prompt_item.build_context(nearest_items=nearest_items,
                                                     add_metadata=add_metadata)
                 logger.info(f"Nearest items Context: {context}")
-                messages.append({"role": "assistant", "content": context})
 
+            messages = prompt_item.to_messages(model_name=model_name, include_assistant=include_assistant)
+
+            messages.insert(0, {"role": "system", "content": system_prompt})
+
+            if len(nearest_items) > 0:
+                if inject_context_to_user:
+                    # Some models return empty response when context is appended as a new
+                    # assistant message. Injecting it into the last user message keeps the
+                    # turn order valid and ensures the model always has a pending question.
+                    logger.info("Messages before context injection: %s", messages)
+                    if messages[-1]['role'] == 'assistant':
+                        logger.info("Removing stale assistant answer before injecting context")
+                        messages.pop()
+                    if messages[-1]['role'] == 'user':
+                        last_content = messages[-1]['content']
+                        if isinstance(last_content, list):
+                            for part in last_content:
+                                if isinstance(part, dict) and part.get('type') == 'text':
+                                    part['text'] += f"\n\nContext:\n{context}"
+                                    break
+                        else:
+                            messages[-1]['content'] += f"\n\nContext:\n{context}"
+                    else:
+                        logger.warning("Could not inject context: last message role is '%s', expected 'user'", messages[-1]['role'])
+                else:
+                    messages.append({"role": "assistant", "content": context})
+
+            logger.info("Sending messages to model: %s", messages)
             stream_response = self.call_model(messages=messages)
             response = ""
             for chunk in stream_response:
