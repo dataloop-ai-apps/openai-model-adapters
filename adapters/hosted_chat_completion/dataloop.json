@@ -147,7 +147,8 @@
           "max_tokens": 4096,
           "temperature": 1.0,
           "top_p": 1.0,
-          "include_assistant": true
+          "include_assistant": true,
+          "inject_context_to_user": true
         },
         "description": "Chat completion via Dataloop-hosted service"
       }

@@ -56,8 +56,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         add_metadata = self.configuration.get("add_metadata")
         model_name = self.model_entity.name
         include_assistant = self.configuration.get("include_assistant", True)
-        llm_model_name = self.configuration.get("model_name", "")
-        is_phi = "phi" in llm_model_name.lower()
+        inject_context_to_user = self.configuration.get("inject_context_to_user", False) # inject the context to user, if true, otherwise append the context as a new assistant message
 
         for prompt_item in batch:
             nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
@@ -71,12 +70,11 @@ class ModelAdapter(dl.BaseModelAdapter):
             messages.insert(0, {"role": "system", "content": system_prompt})
 
             if len(nearest_items) > 0:
-                # Phi returns "" if the last message is assistant.
-                # Instead of appending context as a new assistant message, we inject
-                # it directly into the last user message so the turn order stays valid.
-                if is_phi:
-                    logger.info(f"Model is {llm_model_name}")
-                    logger.info(f"Messages: {messages}")
+                if inject_context_to_user:
+                    # Some models return empty response when context is appended as a new
+                    # assistant message. Injecting it into the last user message keeps the
+                    # turn order valid and ensures the model always has a pending question.
+                    logger.info("Messages before context injection: %s", messages)
                     if messages[-1]['role'] == 'assistant':
                         logger.info("Removing stale assistant answer before injecting context")
                         messages.pop()
