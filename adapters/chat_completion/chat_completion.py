@@ -68,16 +68,33 @@ class ModelAdapter(dl.BaseModelAdapter):
 
             messages = prompt_item.to_messages(model_name=model_name, include_assistant=include_assistant)
 
-            if len(nearest_items) > 0:
-                if is_phi:
-                    messages.insert(0, {"role": "system",
-                                        "content": f"{system_prompt}\n\nContext:\n{context}"})
-                else:
-                    messages.insert(0, {"role": "system", "connow tent": system_prompt})
-                    messages.append({"role": "assistant", "content": context})
-            else:
-                messages.insert(0, {"role": "system", "content": system_prompt})
+            messages.insert(0, {"role": "system", "content": system_prompt})
 
+            if len(nearest_items) > 0:
+                # Phi returns "" if the last message is assistant.
+                # Instead of appending context as a new assistant message, we inject
+                # it directly into the last user message so the turn order stays valid.
+                if is_phi:
+                    logger.info(f"Model is {llm_model_name}")
+                    logger.info(f"Messages: {messages}")
+                    if messages[-1]['role'] == 'assistant':
+                        logger.info("Removing stale assistant answer before injecting context")
+                        messages.pop()
+                    if messages[-1]['role'] == 'user':
+                        last_content = messages[-1]['content']
+                        if isinstance(last_content, list):
+                            for part in last_content:
+                                if isinstance(part, dict) and part.get('type') == 'text':
+                                    part['text'] += f"\n\nContext:\n{context}"
+                                    break
+                        else:
+                            messages[-1]['content'] += f"\n\nContext:\n{context}"
+                    else:
+                        logger.warning("Could not inject context: last message role is '%s', expected 'user'", messages[-1]['role'])
+                else:
+                    messages.append({"role": "assistant", "content": context})
+
+            logger.info("Sending messages to model: %s", messages)
             stream_response = self.call_model(messages=messages)
             response = ""
             for chunk in stream_response:
