@@ -1,0 +1,25 @@
+FROM hub.dataloop.ai/dtlpy-runner-images/gpu:python3.12_cuda11.8_opencv
+
+# Pin torch inductor cache path to a writable location.
+ENV TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor-cache
+RUN mkdir -p "$TORCHINDUCTOR_CACHE_DIR" \
+    && chmod 777 "$TORCHINDUCTOR_CACHE_DIR"
+
+# Audio dependency for Whisper pipeline
+RUN apt-get update \
+    && apt-get install -y ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /tmp
+ENV HOME=/tmp
+
+# Install your custom dependencies
+# (no dtlpy installation here; runner base image should already have it)
+RUN ${DL_PYTHON_EXECUTABLE:-python} -m pip install \
+    transformers \
+    accelerate \
+    openai
+
+# Example build / run commands (adjust tags/registry as needed):
+# docker build -t gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters-gpu:0.0.1 -f Dockerfile.gpu .
+# docker push gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters-gpu:0.0.1
+# docker run --gpus all -it gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters-gpu:0.0.1 bash
