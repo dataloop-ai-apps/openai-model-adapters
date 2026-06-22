@@ -1,16 +1,16 @@
 # OpenAI Adapters
 
-This repository contains code for integrating `OpenAI` models into the `Dataloop` platform using direct API access.
+This repository contains code for integrating `OpenAI` models into the `DDOE` platform using direct API access.
 
-## Using OpenAI Models in Dataloop Platform
+## Using OpenAI Models in DDOE Platform
 
 1. Create an API key for using OpenAI client.
-2. Install the model from [Dataloop Marketplace](https://docs.dataloop.ai/docs/marketplace) ( you can filter the
+2. Install the model from [DDOE Marketplace](https://docs.dataloop.ai/docs/marketplace) ( you can filter the
    available models by their provider) :
 
 <img src="assets/market_place.png" alt="Image of the pipeline">
 
-3. Insert your API key as a `Secret` in Dataloop platform under the name `OPENAI_API_KEY`:
+3. Insert your API key as a `Secret` in DDOE platform under the name `OPENAI_API_KEY`:
 
 
 * Navigate to Data Governance in the left option dialog.

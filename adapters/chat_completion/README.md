@@ -1,6 +1,6 @@
 # Chat Completion Adapter
 
-This Adapter is for integrating OpenAI Chat Completion Models in `Dataloop` platform.
+This Adapter is for integrating OpenAI Chat Completion Models in `DDOE` platform.
 
 For more information on the
 models: [OpenAI - Chat Completion](https://platform.openai.com/docs/guides/chat-completions/getting-started

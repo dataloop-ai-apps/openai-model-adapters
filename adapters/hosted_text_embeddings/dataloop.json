@@ -2,11 +2,11 @@
   "name": "hosted-text-embeddings",
   "displayName": "Hosted Text Embeddings",
   "version": "0.0.39",
-  "description": "Text embeddings via a Dataloop-hosted OpenAI-compatible service",
+  "description": "Text embeddings via a DDOE-hosted OpenAI-compatible service",
   "scope": "public",
   "attributes": {
-    "Provider": "Dataloop",
-    "Deployed By": "Dataloop",
+    "Provider": "DDOE",
+    "Deployed By": "DDOE",
     "Category": "Model",
     "NLP": "Embeddings",
     "Media Type": [
@@ -107,7 +107,7 @@
           "model_name": "",
           "app_id": ""
         },
-        "description": "Text embeddings via Dataloop-hosted service"
+        "description": "Text embeddings via DDOE-hosted service"
       }
     ]
   }

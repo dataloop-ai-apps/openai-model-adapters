@@ -7,7 +7,7 @@ logger = logging.getLogger("hosted-text-embeddings")
 
 
 class HostedTextEmbeddings(TextEmbeddings):
-    """Text embeddings adapter for Dataloop-hosted models (OpenAI-compatible API, no API key)."""
+    """Text embeddings adapter for DDOE-hosted models (OpenAI-compatible API, no API key)."""
 
     def load(self, local_path, **kwargs):
         app_id = self.configuration.get("app_id")

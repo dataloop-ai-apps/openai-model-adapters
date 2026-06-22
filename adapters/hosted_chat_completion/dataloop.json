@@ -2,7 +2,7 @@
   "name": "hosted-chat-completion",
   "version": "0.0.39",
   "attributes": {
-    "Provider": "Dataloop",
+    "Provider": "DDOE",
     "Category": "Model",
     "NLP": "Conversational",
     "Gen AI": "LMM",
@@ -10,10 +10,10 @@
       "Text",
       "Image"
     ],
-    "Deployed By": "Dataloop"
+    "Deployed By": "DDOE"
   },
   "displayName": "Hosted Chat Completion",
-  "description": "Chat completion via a Dataloop-hosted OpenAI-compatible service",
+  "description": "Chat completion via a DDOE-hosted OpenAI-compatible service",
   "scope": "public",
   "codebase": {
     "type": "git",
@@ -57,29 +57,29 @@
               {
                 "type": "Model",
                 "name": "model",
-                "description": "Dataloop Model Entity"
+                "description": "DDOE Model Entity"
               },
               {
                 "type": "Dataset",
                 "name": "dataset",
-                "description": "Dataloop Dataset Entity"
+                "description": "DDOE Dataset Entity"
               },
               {
                 "type": "Json",
                 "name": "filters",
-                "description": "Dataloop Filter DQL"
+                "description": "DDOE Filter DQL"
               }
             ],
             "output": [
               {
                 "type": "Model",
                 "name": "model",
-                "description": "Dataloop Model Entity"
+                "description": "DDOE Model Entity"
               },
               {
                 "type": "Dataset",
                 "name": "dataset",
-                "description": "Dataloop Dataset Entity"
+                "description": "DDOE Dataset Entity"
               }
             ],
             "displayName": "Evaluate a Model",
@@ -117,12 +117,12 @@
               {
                 "type": "Dataset",
                 "name": "dataset",
-                "description": "Dataloop Dataset Entity"
+                "description": "DDOE Dataset Entity"
               },
               {
                 "type": "Json",
                 "name": "filters",
-                "description": "Dataloop Filter DQL"
+                "description": "DDOE Filter DQL"
               }
             ],
             "output": [],
@@ -150,7 +150,7 @@
           "include_assistant": true,
           "inject_context_to_user": true
         },
-        "description": "Chat completion via Dataloop-hosted service"
+        "description": "Chat completion via DDOE-hosted service"
       }
     ]
   }

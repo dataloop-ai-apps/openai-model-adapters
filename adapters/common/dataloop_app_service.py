@@ -1,6 +1,6 @@
 """
-Resolve Dataloop app-service routes and use JWT-APP cookie auth for
-OpenAI-compatible services (e.g. ollama-server on Dataloop).
+Resolve DDOE app-service routes and use JWT-APP cookie auth for
+OpenAI-compatible services (e.g. ollama-server on DDOE).
 Health check uses OpenAI GET /v1/models.
 """
 
@@ -28,7 +28,7 @@ def _strip_bearer(request: httpx.Request):
 
 def resolve_app_service_endpoint(app_id: str):
     """
-    Resolve a Dataloop app-service route by following the gateway redirect
+    Resolve a DDOE app-service route by following the gateway redirect
     chain to discover the real service URL and capture the JWT-APP cookie.
 
     Returns:
@@ -48,7 +48,7 @@ def resolve_app_service_endpoint(app_id: str):
 
 class DataloopAppServiceClient:
     """
-    OpenAI client + session for a Dataloop app-service (cookie-only auth).
+    OpenAI client + session for a DDOE app-service (cookie-only auth).
     Call check_jwt_expiration() before batched or long inference.
     """
 
