@@ -1,6 +1,6 @@
 # Whisper Adapter
 
-This Adapter is for integrating Whisper OpenAI Model in `Dataloop` platform.
+This Adapter is for integrating Whisper OpenAI Model in `DDOE` platform.
 
 Whisper by OpenAI is a speech recognition model designed to transcribe spoken language into text.
 For more information: [OpenAI - Whisper](https://openai.com/index/whisper/)

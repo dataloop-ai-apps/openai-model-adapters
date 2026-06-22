@@ -7,7 +7,7 @@ logger = logging.getLogger("hosted-chat-completion")
 
 
 class HostedChatCompletion(ModelAdapter):
-    """Chat completion adapter for Dataloop-hosted models (OpenAI-compatible API, no API key)."""
+    """Chat completion adapter for DDOE-hosted models (OpenAI-compatible API, no API key)."""
 
     def load(self, local_path, **kwargs):
         self.adapter_defaults.upload_annotations = False
