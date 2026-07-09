@@ -1,0 +1,161 @@
+{
+  "name": "openai-chat-completion",
+  "version": "0.0.39",
+  "attributes": {
+    "Provider": "Open AI",
+    "Category": "Model",
+    "NLP": "Conversational",
+    "Gen AI": "LMM",
+    "Media Type": [
+      "Text",
+      "Image"
+    ],
+    "Deployed By": "Dataloop"
+  },
+  "displayName": "OpenAI Chat Completion (LLM Trace)",
+  "description": "OpenAI Chat Completion Model Application using LLM trace items",
+  "scope": "public",
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
+    "gitTag": "0.0.39"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "openai-chat-completion-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 10,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2,
+            "queueLength": 100
+          },
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "openai-chat-completion-module",
+        "entryPoint": "adapters/openai_chat_completion/openai_chat_completion.py",
+        "className": "ModelAdapter",
+        "computeConfig": "openai-chat-completion-deploy",
+        "description": "OpenAI Chat Completion Module using LLM trace items",
+        "integrations": [
+          "dl-openai-api-key"
+        ],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "evaluate_model",
+            "input": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              }
+            ],
+            "displayName": "Evaluate a Model",
+            "displayIcon": "",
+            "description": "Function to evaluate open AI chat completion model performance"
+          },
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "Chat completion API"
+          },
+          {
+            "name": "predict_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+            ],
+            "displayName": "Predict Dataset",
+            "displayIcon": "",
+            "description": "Chat Completion Open AI Dataset"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "openai-gpt-4o-llmtrace",
+        "moduleName": "openai-chat-completion-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "model_name": "gpt-4o",
+          "add_metadata": [
+            "system.document.source"
+          ],
+          "stream": true,
+          "max_tokens": 4096,
+          "temperature": 1.0,
+          "top_p": 1.0
+        },
+        "description": "OpenAI API call for gpt-4o using LLM trace"
+      }
+    ]
+  }
+}

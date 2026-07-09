@@ -44,3 +44,7 @@ This repository contains code for integrating `OpenAI` models into the `Dataloop
 ## Chat Completion
 
 - [Whisper](adapters/whisper/README.md)
+
+## OpenAI Chat Completion (LLM Trace)
+
+- [OpenAI Chat Completion](adapters/openai_chat_completion/)
