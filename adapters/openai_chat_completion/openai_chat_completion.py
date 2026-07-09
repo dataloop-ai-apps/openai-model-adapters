@@ -50,9 +50,13 @@ class ModelAdapter(dl.BaseModelAdapter):
             if messages and _get_role(messages[-1]) == 'user':
                 last_message = messages[-1]
                 last_msg_content = last_message.content
-                if not isinstance(last_msg_content, str):
-                    last_msg_content = str(last_msg_content)
-                last_message.content = (last_msg_content or "") + f"\n\nContext:\n{last_msg_context}"
+                if isinstance(last_msg_content, list):
+                    for part in last_msg_content:
+                        if isinstance(part, dict) and part.get('type') == 'text':
+                            part['text'] += f"\n\nContext:\n{last_msg_context}"
+                            break
+                else:
+                    last_message.content = (last_msg_content or "") + f"\n\nContext:\n{last_msg_context}"
                 logger.info("Injected context to user message: %s", last_message.content)
                 if trace.messages and len(trace.messages) > 0:
                     trace.messages[-1].context = None
@@ -78,6 +82,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         self.adapter_defaults.upload_annotations = False
+        self._app_service = None
         api_key = os.environ.get("OPENAI_API_KEY")
         if api_key is None:
             raise ValueError("Missing API key: set OPENAI_API_KEY env var")
@@ -104,6 +109,10 @@ class ModelAdapter(dl.BaseModelAdapter):
         return dl.LLMTrace.from_item(item)
 
     def predict(self, batch, **kwargs):
+        if self._app_service is not None:
+            self._app_service.check_jwt_expiration()
+            self.client = self._app_service.client
+
         model_name = self.model_entity.name
 
         for trace in batch:
