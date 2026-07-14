@@ -103,12 +103,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.model_name = self.configuration.get("model_name", 'gpt-4o')
         self.stream_throttle_seconds = self.configuration.get("stream_throttle_seconds", 3.0)
 
-
-
-    def prepare_item_func(self, item: dl.Item):
-        return dl.LLMTrace.from_item(item)
-
-    def predict(self, batch, **kwargs):
+    def generate(self, batch, **kwargs):
         if self._app_service is not None:
             self._app_service.check_jwt_expiration()
             self.client = self._app_service.client
@@ -149,5 +144,5 @@ class ModelAdapter(dl.BaseModelAdapter):
                 update_interval=self.stream_throttle_seconds,
             )
 
-        return []
+        return batch
 

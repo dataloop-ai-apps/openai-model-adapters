@@ -90,32 +90,32 @@
             "description": "Function to evaluate open AI chat completion model performance"
           },
           {
-            "name": "predict_items",
+            "name": "generate_items",
             "input": [
               {
                 "type": "Item[]",
                 "name": "items",
-                "description": "List of items to run inference on"
+                "description": "List of items to run generation on"
               }
             ],
             "output": [
               {
                 "type": "Item[]",
                 "name": "items",
-                "description": "The same input images for prediction."
+                "description": "The output items."
               },
               {
-                "type": "Annotation[]",
-                "name": "annotations",
-                "description": "The predicted annotations."
+                "type": "Json[]",
+                "name": "results",
+                "description": "The generation results."
               }
             ],
-            "displayName": "Predict Items",
+            "displayName": "Generate Items",
             "displayIcon": "",
             "description": "Chat completion API"
           },
           {
-            "name": "predict_dataset",
+            "name": "generate_dataset",
             "input": [
               {
                 "type": "Dataset",
@@ -130,7 +130,7 @@
             ],
             "output": [
             ],
-            "displayName": "Predict Dataset",
+            "displayName": "Generate Dataset",
             "displayIcon": "",
             "description": "Chat Completion Open AI Dataset"
           }
