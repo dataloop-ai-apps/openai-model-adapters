@@ -1,0 +1,206 @@
+{
+  "name": "cloudops-agent",
+  "version": "0.0.39",
+  "attributes": {
+    "Provider": "Dataloop",
+    "Category": "Model",
+    "NLP": "Conversational",
+    "Gen AI": "LMM",
+    "Media Type": [
+      "Text"
+    ],
+    "Deployed By": "Dataloop"
+  },
+  "displayName": "CloudOps Agent",
+  "description": "Cloud operations agents for cost optimization, resource health monitoring, compliance auditing, and orphan resource detection. Powered by Jarvis LLM and MCP tool sets.",
+  "scope": "public",
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/openai-model-adapters.git",
+    "gitTag": "0.0.39"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "cloudops-agent-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2,
+            "queueLength": 100
+          },
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "cloudops-agent-module",
+        "entryPoint": "adapters/agentic_hosted_chat_completion/agentic_hosted_chat_completion.py",
+        "className": "AgenticHostedChatCompletion",
+        "computeConfig": "cloudops-agent-deploy",
+        "description": "Agentic model adapter with tool-calling loop via Jarvis MCP",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "evaluate_model",
+            "input": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              }
+            ],
+            "displayName": "Evaluate a Model",
+            "displayIcon": "",
+            "description": "Evaluate agent model performance"
+          },
+          {
+            "name": "generate_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run generation on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The output items."
+              },
+              {
+                "type": "Json[]",
+                "name": "results",
+                "description": "The generation results."
+              }
+            ],
+            "displayName": "Generate Items",
+            "displayIcon": "",
+            "description": "Run agentic tool-calling loop"
+          },
+          {
+            "name": "generate_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [],
+            "displayName": "Generate Dataset",
+            "displayIcon": "",
+            "description": "Run agentic loop on a dataset"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "cloudops-cost-analyzer",
+        "moduleName": "cloudops-agent-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "model_name": "gpt-4o",
+          "llm_type": "Agent",
+          "system_prompt": "You are a cloud operations cost analyst. Use the available tools to retrieve billing data and resource utilization for the last 7 days. Identify the top 5 cost drivers, flag any anomalies (>20% day-over-day change), and produce a structured cost optimization report with concrete recommendations.",
+          "tool_set_id": "cloudops",
+          "max_turns": 20,
+          "max_tokens": 4096,
+          "temperature": 0.2,
+          "stream": false
+        },
+        "description": "Analyzes cloud spending, identifies waste, and recommends optimizations. Runs on a daily cron trigger."
+      },
+      {
+        "name": "cloudops-resource-health",
+        "moduleName": "cloudops-agent-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "model_name": "gpt-4o",
+          "llm_type": "Agent",
+          "system_prompt": "You are a cloud resource health monitor. Use the available tools to check service health, pod/node metrics, error rates, and autoscaler state. Detect degraded services and elevated error rates. Score findings by severity and produce a structured health summary report.",
+          "tool_set_id": "cloudops",
+          "max_turns": 20,
+          "max_tokens": 4096,
+          "temperature": 0.2,
+          "stream": false
+        },
+        "description": "Monitors cloud resource health and detects anomalies. Runs on an hourly cron trigger."
+      },
+      {
+        "name": "cloudops-compliance-auditor",
+        "moduleName": "cloudops-agent-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "model_name": "gpt-4o",
+          "llm_type": "Agent",
+          "system_prompt": "You are a cloud compliance auditor. Use the available tools to audit IAM policies, firewall rules, and network configurations. Detect over-privileged roles, open firewall rules, missing encryption, and public bucket exposure. Produce a compliance gap report with severity levels and remediation recommendations.",
+          "tool_set_id": "cloudops",
+          "max_turns": 20,
+          "max_tokens": 4096,
+          "temperature": 0.2,
+          "stream": false
+        },
+        "description": "Audits cloud resources against security and compliance policies. Runs on a daily cron trigger."
+      },
+      {
+        "name": "cloudops-orphan-cleaner",
+        "moduleName": "cloudops-agent-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "model_name": "gpt-4o",
+          "llm_type": "Agent",
+          "system_prompt": "You are a cloud resource cleanup specialist. Use the available tools to find unused or orphaned cloud resources (VMs, disks, IPs, buckets) with their last-used timestamps, owner tags, and cost data. Produce an orphan candidate list with estimated monthly savings. Do not delete anything — report and recommend only.",
+          "tool_set_id": "cloudops",
+          "max_turns": 20,
+          "max_tokens": 4096,
+          "temperature": 0.2,
+          "stream": false
+        },
+        "description": "Identifies unused or orphaned cloud resources. Runs on a weekly cron trigger."
+      }
+    ]
+  }
+}
