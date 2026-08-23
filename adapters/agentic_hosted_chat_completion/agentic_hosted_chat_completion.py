@@ -14,15 +14,12 @@ Configuration (on the model entity):
     max_tokens    — max tokens per LLM call
     temperature   — LLM temperature
 
-Loop (per prompt_item):
-    messages = [system_prompt] + prompt_item.to_messages()
-    tools    = GET /api/v1/ai/mcps/{tool_set_id}
-    for turn in range(max_turns):
-        response = jarvis.chat.completions.create(messages, tools)
-        if tool_calls: execute via Jarvis MCP, append results, continue
-        if stop: record final answer via prompt_item.add(), break
+The AI Playground sends LLM trace items (dltype: llm_trace) with a
+messages array. The adapter reads messages from the item, runs the
+agentic loop, and writes the response back.
 """
 
+import io
 import json
 import logging
 import os
@@ -82,6 +79,16 @@ def _trim_old_tool_results(messages, keep_chars=_TOOL_TRIM_KEEP_CHARS):
                 msg = {**msg, "content": content[:keep_chars] + "\n[trimmed]"}
         result.append(msg)
     return result
+
+
+def _read_item_messages(item: dl.Item) -> list:
+    """Download an LLM trace item and extract the messages array."""
+    buffer = item.download(save_locally=False)
+    if isinstance(buffer, io.BytesIO):
+        content = json.loads(buffer.getvalue().decode("utf-8"))
+    else:
+        content = json.loads(buffer.read().decode("utf-8"))
+    return content.get("messages", [])
 
 
 class AgenticHostedChatCompletion(dl.BaseModelAdapter):
@@ -203,16 +210,15 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
             temperature=self.temperature,
         )
 
-    def prepare_item_func(self, item: dl.Item):
-        return dl.PromptItem.from_item(item)
-
     def predict(self, batch, **kwargs):
         self._refresh_token()
 
         model_name = self.model_entity.name
 
-        for prompt_item in batch:
-            messages = prompt_item.to_messages(model_name=model_name)
+        for item in batch:
+            # Read messages from the LLM trace item
+            messages = _read_item_messages(item)
+            logger.info("Read %d messages from item %s", len(messages), item.id)
 
             # Prepend system prompt
             if self.system_prompt:
@@ -222,6 +228,7 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
             tools = self._fetch_tools()
 
             # Agentic loop
+            final_content = ""
             for turn in range(self.max_turns):
                 logger.info("Turn %d/%d", turn + 1, self.max_turns)
 
@@ -248,26 +255,23 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
                     # Final answer
                     final_content = choice.message.content or ""
                     logger.info("Agent finished after %d turn(s)", turn + 1)
-
-                    prompt_item.add(
-                        message={"role": "assistant",
-                                 "content": [{"mimetype": dl.PromptType.TEXT,
-                                              "value": final_content}]},
-                        model_info={"name": model_name,
-                                    "confidence": 1.0,
-                                    "model_id": self.model_entity.id},
-                    )
                     break
             else:
-                # Exhausted max_turns without a final answer
                 logger.warning("Agent reached max_turns (%d) without final answer", self.max_turns)
-                prompt_item.add(
-                    message={"role": "assistant",
-                             "content": [{"mimetype": dl.PromptType.TEXT,
-                                          "value": "Agent reached maximum turns without producing a final answer."}]},
-                    model_info={"name": model_name,
-                                "confidence": 1.0,
-                                "model_id": self.model_entity.id},
-                )
+                final_content = "Agent reached maximum turns without producing a final answer."
+
+            # Write response as an annotation on the item.
+            # The AI Playground reads text annotations with label "free-text"
+            # and metadata.system.promptId to display the assistant's response.
+            builder = item.annotations.builder()
+            builder.add(
+                annotation_definition=dl.FreeText(text=final_content),
+                model_info={
+                    "name": model_name,
+                    "model_id": self.model_entity.id,
+                    "confidence": 1.0,
+                },
+            )
+            item.annotations.upload(builder)
 
         return []
