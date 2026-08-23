@@ -14,13 +14,13 @@ Configuration (on the model entity):
     max_tokens    — max tokens per LLM call
     temperature   — LLM temperature
 
-Loop (per trace):
-    messages = [system_prompt] + trace.messages
+Loop (per prompt_item):
+    messages = [system_prompt] + prompt_item.to_messages()
     tools    = GET /api/v1/ai/mcps/{tool_set_id}
     for turn in range(max_turns):
         response = jarvis.chat.completions.create(messages, tools)
         if tool_calls: execute via Jarvis MCP, append results, continue
-        if stop: record final answer via trace.stream_response(), break
+        if stop: record final answer via prompt_item.add(), break
 """
 
 import json
@@ -62,14 +62,6 @@ def _jarvis_auth_headers() -> dict:
     return dict(dl.client_api.auth)
 
 
-def _to_openai_messages(messages):
-    """Convert dl.LLMMessage list to OpenAI-compatible dicts."""
-    payload = []
-    for msg in messages:
-        payload.append(msg.to_json())
-    return payload
-
-
 def _trim_old_tool_results(messages, keep_chars=_TOOL_TRIM_KEEP_CHARS):
     """Truncate tool result content for older turns to save context window.
 
@@ -77,7 +69,6 @@ def _trim_old_tool_results(messages, keep_chars=_TOOL_TRIM_KEEP_CHARS):
     synthesised older tool outputs into assistant messages, so full bytes
     only bloat the context.
     """
-    # Find the last user message index as the cutoff
     user_indices = [i for i, m in enumerate(messages) if m.get("role") == "user"]
     if len(user_indices) <= 1:
         return messages
@@ -212,88 +203,71 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
             temperature=self.temperature,
         )
 
-    def generate(self, batch, **kwargs):
+    def prepare_item_func(self, item: dl.Item):
+        return dl.PromptItem.from_item(item)
+
+    def predict(self, batch, **kwargs):
         self._refresh_token()
 
         model_name = self.model_entity.name
 
-        for trace in batch:
-            messages = list(trace.messages)
+        for prompt_item in batch:
+            messages = prompt_item.to_messages(model_name=model_name)
 
-            # Prepend system prompt if configured (dedup check)
+            # Prepend system prompt
             if self.system_prompt:
-                has_matching = any(
-                    getattr(msg, "role", None) == "system" and msg.content == self.system_prompt
-                    for msg in messages
-                )
-                if not has_matching:
-                    messages.insert(0, dl.LLMMessage(role="system", content=self.system_prompt))
+                messages.insert(0, {"role": "system", "content": self.system_prompt})
 
             # Fetch tools from Jarvis MCP
             tools = self._fetch_tools()
-
-            # Convert to OpenAI message format for the loop
-            openai_messages = _to_openai_messages(messages)
 
             # Agentic loop
             for turn in range(self.max_turns):
                 logger.info("Turn %d/%d", turn + 1, self.max_turns)
 
-                response = self._call_model(openai_messages, tools)
+                response = self._call_model(messages, tools)
                 choice = response.choices[0]
 
                 if choice.finish_reason == "tool_calls" and choice.message.tool_calls:
                     # Append assistant message with tool calls
-                    openai_messages.append(choice.message.model_dump())
+                    messages.append(choice.message.model_dump())
 
                     # Execute each tool call via Jarvis MCP
                     for tc in choice.message.tool_calls:
                         logger.info("Calling tool: %s", tc.function.name)
                         result = self._call_tool(tc.function.name, tc.function.arguments)
-                        openai_messages.append({
+                        messages.append({
                             "role": "tool",
                             "tool_call_id": tc.id,
                             "content": result,
                         })
 
                     # Trim older tool results to save context window
-                    openai_messages = _trim_old_tool_results(openai_messages)
+                    messages = _trim_old_tool_results(messages)
                 else:
-                    # Final answer — record via trace
+                    # Final answer
                     final_content = choice.message.content or ""
                     logger.info("Agent finished after %d turn(s)", turn + 1)
 
-                    def _yield_answer():
-                        yield final_content
-
-                    model_info = {
-                        "name": model_name,
-                        "confidence": 1.0,
-                        "model_id": self.model_entity.id,
-                    }
-                    trace.stream_response(
-                        stream=_yield_answer(),
-                        role="assistant",
-                        model_info=model_info,
+                    prompt_item.add(
+                        message={"role": "assistant",
+                                 "content": [{"mimetype": dl.PromptType.TEXT,
+                                              "value": final_content}]},
+                        model_info={"name": model_name,
+                                    "confidence": 1.0,
+                                    "model_id": self.model_entity.id},
                     )
                     break
             else:
                 # Exhausted max_turns without a final answer
                 logger.warning("Agent reached max_turns (%d) without final answer", self.max_turns)
-                fallback = "Agent reached maximum turns without producing a final answer."
-
-                def _yield_fallback():
-                    yield fallback
-
-                model_info = {
-                    "name": model_name,
-                    "confidence": 1.0,
-                    "model_id": self.model_entity.id,
-                }
-                trace.stream_response(
-                    stream=_yield_fallback(),
-                    role="assistant",
-                    model_info=model_info,
+                prompt_item.add(
+                    message={"role": "assistant",
+                             "content": [{"mimetype": dl.PromptType.TEXT,
+                                          "value": "Agent reached maximum turns without producing a final answer."}]},
+                    model_info={"name": model_name,
+                                "confidence": 1.0,
+                                "model_id": self.model_entity.id},
                 )
 
-        return batch
+        return []

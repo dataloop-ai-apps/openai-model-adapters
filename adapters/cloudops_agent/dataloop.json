@@ -86,32 +86,32 @@
             "description": "Evaluate agent model performance"
           },
           {
-            "name": "generate_items",
+            "name": "predict_items",
             "input": [
               {
                 "type": "Item[]",
                 "name": "items",
-                "description": "List of items to run generation on"
+                "description": "List of items to run inference on"
               }
             ],
             "output": [
               {
                 "type": "Item[]",
                 "name": "items",
-                "description": "The output items."
+                "description": "The same input items."
               },
               {
-                "type": "Json[]",
-                "name": "results",
-                "description": "The generation results."
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
               }
             ],
-            "displayName": "Generate Items",
+            "displayName": "Predict Items",
             "displayIcon": "",
             "description": "Run agentic tool-calling loop"
           },
           {
-            "name": "generate_dataset",
+            "name": "predict_dataset",
             "input": [
               {
                 "type": "Dataset",
@@ -125,7 +125,7 @@
               }
             ],
             "output": [],
-            "displayName": "Generate Dataset",
+            "displayName": "Predict Dataset",
             "displayIcon": "",
             "description": "Run agentic loop on a dataset"
           }
