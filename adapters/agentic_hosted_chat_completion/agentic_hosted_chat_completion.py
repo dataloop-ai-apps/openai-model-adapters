@@ -210,6 +210,10 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
             temperature=self.temperature,
         )
 
+    def prepare_item_func(self, item: dl.Item):
+        """Return the raw item — no PromptItem conversion needed for LLM trace items."""
+        return item
+
     def predict(self, batch, **kwargs):
         self._refresh_token()
 
