@@ -10,7 +10,8 @@ Configuration (on the model entity):
     system_prompt — agent system prompt
     llm_type      — "Agent" marker
     max_turns     — break guard for the agentic loop (default 20)
-    model_name    — LLM model to use via Jarvis (default "gpt-4o")
+    model_name    — LLM model to use via Jarvis, provider-namespaced
+                    (default "openai/gpt-4o")
     max_tokens    — max tokens per LLM call
     temperature   — LLM temperature
 
@@ -120,7 +121,9 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
         self.system_prompt = self.configuration.get("system_prompt", "")
         self.tool_set_id = self.configuration.get("tool_set_id", "")
         self.max_turns = self.configuration.get("max_turns", DEFAULT_MAX_TURNS)
-        self.model_name = self.configuration.get("model_name", "gpt-4o")
+        # Jarvis namespaces models by provider (e.g. "openai/gpt-4o"); a bare
+        # model name returns 404 model_not_found from /ai/chat/completions.
+        self.model_name = self.configuration.get("model_name", "openai/gpt-4o")
         self.max_tokens = self.configuration.get("max_tokens", NOT_GIVEN)
         self.temperature = self.configuration.get("temperature", NOT_GIVEN)
 

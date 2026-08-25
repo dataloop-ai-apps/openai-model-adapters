@@ -139,7 +139,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "model_name": "gpt-4o",
+          "model_name": "openai/gpt-4o",
           "llm_type": "Agent",
           "system_prompt": "You are a cloud operations cost analyst. Use the available tools to retrieve billing data and resource utilization for the last 7 days. Identify the top 5 cost drivers, flag any anomalies (>20% day-over-day change), and produce a structured cost optimization report with concrete recommendations.",
           "tool_set_id": "cloudops",
@@ -156,7 +156,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "model_name": "gpt-4o",
+          "model_name": "openai/gpt-4o",
           "llm_type": "Agent",
           "system_prompt": "You are a cloud resource health monitor. Use the available tools to check service health, pod/node metrics, error rates, and autoscaler state. Detect degraded services and elevated error rates. Score findings by severity and produce a structured health summary report.",
           "tool_set_id": "cloudops",
@@ -173,7 +173,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "model_name": "gpt-4o",
+          "model_name": "openai/gpt-4o",
           "llm_type": "Agent",
           "system_prompt": "You are a cloud compliance auditor. Use the available tools to audit IAM policies, firewall rules, and network configurations. Detect over-privileged roles, open firewall rules, missing encryption, and public bucket exposure. Produce a compliance gap report with severity levels and remediation recommendations.",
           "tool_set_id": "cloudops",
@@ -190,7 +190,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "model_name": "gpt-4o",
+          "model_name": "openai/gpt-4o",
           "llm_type": "Agent",
           "system_prompt": "You are a cloud resource cleanup specialist. Use the available tools to find unused or orphaned cloud resources (VMs, disks, IPs, buckets) with their last-used timestamps, owner tags, and cost data. Produce an orphan candidate list with estimated monthly savings. Do not delete anything — report and recommend only.",
           "tool_set_id": "cloudops",
