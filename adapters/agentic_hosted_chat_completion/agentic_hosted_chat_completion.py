@@ -157,7 +157,20 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
             resp.raise_for_status()
             data = resp.json()
             tools = data.get("tools", [])
-            logger.info("Fetched %d tools from tool set '%s'", len(tools), self.tool_set_id)
+            # Jarvis reports per-MCP failures and tool names configured on the
+            # tool set that the MCP no longer exposes, rather than dropping them
+            # silently. Surface them — otherwise the agent runs with a quietly
+            # reduced tool set.
+            for warning in data.get("warnings", []) or []:
+                logger.warning("Tool set '%s' warning: %s", self.tool_set_id, warning)
+            if not tools:
+                logger.warning(
+                    "Tool set '%s' returned no tools — the agent will run without tools",
+                    self.tool_set_id,
+                )
+            logger.info("Fetched %d tools from tool set '%s': %s",
+                        len(tools), self.tool_set_id,
+                        [t.get("function", {}).get("name") for t in tools])
             return tools
         except Exception as exc:
             logger.error("Failed to fetch tools from %s: %s", url, exc)
@@ -267,9 +280,16 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
                 logger.warning("Agent reached max_turns (%d) without final answer", self.max_turns)
                 final_content = "Agent reached maximum turns without producing a final answer."
 
-            # Write response as an annotation on the item.
-            # The AI Playground reads text annotations with label "free-text"
-            # and metadata.system.promptId to display the assistant's response.
+            # Write the response as a text annotation on the trace item.
+            #
+            # ai-chat polls the item's annotations and only considers those with
+            # type="text" AND a non-null metadata.system.promptId, preferring
+            # label="free-text" (ai-chat backend/main.py, `candidates`). Without
+            # promptId the response is silently never rendered.
+            #
+            # llm_trace messages carry no ids, so number the assistant turn by
+            # the count of user messages preceding it.
+            prompt_id = str(sum(1 for m in messages if m.get("role") == "user"))
             builder = item.annotations.builder()
             builder.add(
                 annotation_definition=dl.FreeText(text=final_content),
@@ -279,6 +299,10 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
                     "confidence": 1.0,
                 },
             )
+            for annotation in builder:
+                annotation.metadata.setdefault("system", {})["promptId"] = prompt_id
             item.annotations.upload(builder)
+            logger.info("Uploaded response annotation (promptId=%s, %d chars)",
+                        prompt_id, len(final_content))
 
         return []
