@@ -293,14 +293,13 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
             builder = item.annotations.builder()
             builder.add(
                 annotation_definition=dl.FreeText(text=final_content),
+                prompt_id=prompt_id,
                 model_info={
                     "name": model_name,
                     "model_id": self.model_entity.id,
                     "confidence": 1.0,
                 },
             )
-            for annotation in builder:
-                annotation.metadata.setdefault("system", {})["promptId"] = prompt_id
             item.annotations.upload(builder)
             logger.info("Uploaded response annotation (promptId=%s, %d chars)",
                         prompt_id, len(final_content))
