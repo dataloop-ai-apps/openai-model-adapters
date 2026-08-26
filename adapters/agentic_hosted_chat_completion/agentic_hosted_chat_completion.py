@@ -248,8 +248,26 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
                 choice = response.choices[0]
 
                 if choice.finish_reason == "tool_calls" and choice.message.tool_calls:
-                    # Append assistant message with tool calls
-                    messages.append(choice.message.model_dump())
+                    # Append assistant message with tool calls.
+                    # Only include fields the chat completions API accepts —
+                    # model_dump() includes SDK extras (refusal, annotations,
+                    # audio, reasoning, …) that Jarvis rejects as excess.
+                    assistant_msg = {
+                        "role": "assistant",
+                        "content": choice.message.content or "",
+                        "tool_calls": [
+                            {
+                                "id": tc.id,
+                                "type": "function",
+                                "function": {
+                                    "name": tc.function.name,
+                                    "arguments": tc.function.arguments,
+                                },
+                            }
+                            for tc in choice.message.tool_calls
+                        ],
+                    }
+                    messages.append(assistant_msg)
 
                     # Execute each tool call via Jarvis MCP
                     for tc in choice.message.tool_calls:
