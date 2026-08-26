@@ -82,16 +82,6 @@ def _trim_old_tool_results(messages, keep_chars=_TOOL_TRIM_KEEP_CHARS):
     return result
 
 
-def _read_item_messages(item: dl.Item) -> list:
-    """Download an LLM trace item and extract the messages array."""
-    buffer = item.download(save_locally=False)
-    if isinstance(buffer, io.BytesIO):
-        content = json.loads(buffer.getvalue().decode("utf-8"))
-    else:
-        content = json.loads(buffer.read().decode("utf-8"))
-    return content.get("messages", [])
-
-
 class AgenticHostedChatCompletion(dl.BaseModelAdapter):
     """Agentic model adapter with a tool-calling loop via Jarvis.
 
@@ -236,9 +226,11 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
         model_name = self.model_entity.name
 
         for item in batch:
-            # Read messages from the LLM trace item
-            messages = _read_item_messages(item)
-            logger.info("Read %d messages from item %s", len(messages), item.id)
+            # Load the LLMTrace object from the item
+            trace = dl.LLMTrace.from_item(item)
+            messages = [{"role": getattr(msg, "role", ""), "content": getattr(msg, "content", "")}
+                for msg in trace.messages]
+            logger.info("Read %d messages from trace item %s", len(messages), item.id)
 
             # Prepend system prompt
             if self.system_prompt:
@@ -280,15 +272,12 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
                 logger.warning("Agent reached max_turns (%d) without final answer", self.max_turns)
                 final_content = "Agent reached maximum turns without producing a final answer."
 
-            # Write the response as a text annotation on the trace item.
-            #
-            # ai-chat polls the item's annotations and only considers those with
-            # type="text" AND a non-null metadata.system.promptId, preferring
-            # label="free-text" (ai-chat backend/main.py, `candidates`). Without
-            # promptId the response is silently never rendered.
-            #
-            # llm_trace messages carry no ids, so number the assistant turn by
-            # the count of user messages preceding it.
+            # Append final assistant message to the trace and update the item
+            trace.add_message(dl.LLMMessage(role="assistant", content=final_content))
+            trace.update()
+            logger.info("Updated trace item %s with assistant response (%d chars)", item.id, len(final_content))
+
+            # Keep annotation as backup for compatibility
             prompt_id = str(sum(1 for m in messages if m.get("role") == "user"))
             builder = item.annotations.builder()
             builder.add(
@@ -301,7 +290,6 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
                 },
             )
             item.annotations.upload(builder)
-            logger.info("Uploaded response annotation (promptId=%s, %d chars)",
-                        prompt_id, len(final_content))
+            logger.info("Uploaded response annotation as backup (promptId=%s)", prompt_id)
 
         return []
