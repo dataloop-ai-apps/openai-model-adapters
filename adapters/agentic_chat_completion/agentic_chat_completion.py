@@ -31,27 +31,17 @@ import openai
 import requests
 from openai import NOT_GIVEN
 
-logger = logging.getLogger("agentic-hosted-chat-completion")
+logger = logging.getLogger("agentic-chat-completion")
 
 DEFAULT_MAX_TURNS = 20
 _TOOL_TRIM_KEEP_CHARS = 300
 
 
 def _jarvis_base_url() -> str:
-    """Derive the Jarvis base URL from the Dataloop environment.
-
-    Same logic as Donna v3 llm.py — dl.environment() + "/ai".
-    JARVIS_BASE_URL env var overrides for testing.
-    """
-    override = os.environ.get("JARVIS_BASE_URL", "").strip()
-    if override:
-        return override.rstrip("/")
-    try:
-        gate = dl.environment().rstrip("/")
-        if gate:
-            return f"{gate}/ai"
-    except Exception as exc:
-        logger.debug("dl.environment() unavailable: %s", exc)
+    """Derive the Jarvis base URL from the Dataloop environment."""
+    gate = dl.environment().rstrip("/")
+    if gate:
+        return f"{gate}/ai"
     return "https://gate.dataloop.ai/api/v1/ai"
 
 
@@ -61,12 +51,8 @@ def _jarvis_auth_headers() -> dict:
 
 
 def _trim_old_tool_results(messages, keep_chars=_TOOL_TRIM_KEEP_CHARS):
-    """Truncate tool result content for older turns to save context window.
+    """Truncate tool result content for older turns to save context window."""
 
-    Same pattern as Donna v3 _trim_old_tool_results — the LLM has already
-    synthesised older tool outputs into assistant messages, so full bytes
-    only bloat the context.
-    """
     user_indices = [i for i, m in enumerate(messages) if m.get("role") == "user"]
     if len(user_indices) <= 1:
         return messages
@@ -82,8 +68,8 @@ def _trim_old_tool_results(messages, keep_chars=_TOOL_TRIM_KEEP_CHARS):
     return result
 
 
-class AgenticHostedChatCompletion(dl.BaseModelAdapter):
-    """Agentic model adapter with a tool-calling loop via Jarvis.
+class AgenticChatCompletion(dl.BaseModelAdapter):
+    """Agentic chat completion adapter with a tool-calling loop via Jarvis.
 
     No API key needed — LLM calls and tool calls go through Jarvis.
     Auth is the Dataloop platform JWT (dl.token()).
@@ -93,7 +79,7 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
         self.adapter_defaults.upload_annotations = False
 
         # Jarvis LLM client — OpenAI SDK pointed at Jarvis gateway
-        jarvis_url = _jarvis_base_url()
+        self.jarvis_url = _jarvis_base_url()
         token = dl.token()
         if not token:
             raise ValueError("No Dataloop token available — cannot authenticate with Jarvis")
@@ -102,10 +88,9 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
         http_client = httpx.Client(verify=ssl_verify)
         self.client = openai.OpenAI(
             api_key=token,
-            base_url=jarvis_url,
+            base_url=self.jarvis_url,
             http_client=http_client,
         )
-        self.jarvis_url = jarvis_url
 
         # Agent configuration from model entity
         self.system_prompt = self.configuration.get("system_prompt", "")
@@ -139,6 +124,7 @@ class AgenticHostedChatCompletion(dl.BaseModelAdapter):
         Returns OpenAI-compatible tool schema list.
         """
         if not self.tool_set_id:
+            logger.warning("No tool set ID configured for agentic adapter")
             return []
         url = f"{self.jarvis_url}/mcps/{self.tool_set_id}"
         headers = _jarvis_auth_headers()

@@ -39,8 +39,8 @@
     "modules": [
       {
         "name": "cloudops-agent-module",
-        "entryPoint": "adapters/agentic_hosted_chat_completion/agentic_hosted_chat_completion.py",
-        "className": "AgenticHostedChatCompletion",
+        "entryPoint": "adapters/agentic_chat_completion/agentic_chat_completion.py",
+        "className": "AgenticChatCompletion",
         "computeConfig": "cloudops-agent-deploy",
         "description": "Agentic model adapter with tool-calling loop via Jarvis MCP",
         "initInputs": [
@@ -134,72 +134,21 @@
     ],
     "models": [
       {
-        "name": "cloudops-cost-analyzer",
+        "name": "cloudops-agent",
         "moduleName": "cloudops-agent-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
           "model_name": "openai/gpt-4o",
           "llm_type": "Agent",
-          "system_prompt": "You are a cloud operations cost analyst. Use the available tools to retrieve billing data and resource utilization for the last 7 days. Identify the top 5 cost drivers, flag any anomalies (>20% day-over-day change), and produce a structured cost optimization report with concrete recommendations.",
+          "system_prompt": "You are a cloud operations agent capable of handling multiple cloud operations tasks. Use the available tools to: 1) Analyze cloud spending and resource utilization - identify cost drivers, flag anomalies (>20% day-over-day change), and produce cost optimization reports with recommendations. 2) Monitor resource health - check service health, pod/node metrics, error rates, and autoscaler state to detect degraded services and elevated error rates. 3) Audit compliance - review IAM policies, firewall rules, and network configurations to detect over-privileged roles, open firewall rules, missing encryption, and public bucket exposure. 4) Identify orphan resources - find unused or orphaned cloud resources (VMs, disks, IPs, buckets) with last-used timestamps, owner tags, and cost data. Always produce structured reports with severity levels and concrete recommendations. Do not delete anything - report and recommend only.",
           "tool_set_id": "cloudops",
           "max_turns": 20,
           "max_tokens": 4096,
           "temperature": 0.2,
           "stream": false
         },
-        "description": "Analyzes cloud spending, identifies waste, and recommends optimizations. Runs on a daily cron trigger."
-      },
-      {
-        "name": "cloudops-resource-health",
-        "moduleName": "cloudops-agent-module",
-        "scope": "project",
-        "status": "pre-trained",
-        "configuration": {
-          "model_name": "openai/gpt-4o",
-          "llm_type": "Agent",
-          "system_prompt": "You are a cloud resource health monitor. Use the available tools to check service health, pod/node metrics, error rates, and autoscaler state. Detect degraded services and elevated error rates. Score findings by severity and produce a structured health summary report.",
-          "tool_set_id": "cloudops",
-          "max_turns": 20,
-          "max_tokens": 4096,
-          "temperature": 0.2,
-          "stream": false
-        },
-        "description": "Monitors cloud resource health and detects anomalies. Runs on an hourly cron trigger."
-      },
-      {
-        "name": "cloudops-compliance-auditor",
-        "moduleName": "cloudops-agent-module",
-        "scope": "project",
-        "status": "pre-trained",
-        "configuration": {
-          "model_name": "openai/gpt-4o",
-          "llm_type": "Agent",
-          "system_prompt": "You are a cloud compliance auditor. Use the available tools to audit IAM policies, firewall rules, and network configurations. Detect over-privileged roles, open firewall rules, missing encryption, and public bucket exposure. Produce a compliance gap report with severity levels and remediation recommendations.",
-          "tool_set_id": "cloudops",
-          "max_turns": 20,
-          "max_tokens": 4096,
-          "temperature": 0.2,
-          "stream": false
-        },
-        "description": "Audits cloud resources against security and compliance policies. Runs on a daily cron trigger."
-      },
-      {
-        "name": "cloudops-orphan-cleaner",
-        "moduleName": "cloudops-agent-module",
-        "scope": "project",
-        "status": "pre-trained",
-        "configuration": {
-          "model_name": "openai/gpt-4o",
-          "llm_type": "Agent",
-          "system_prompt": "You are a cloud resource cleanup specialist. Use the available tools to find unused or orphaned cloud resources (VMs, disks, IPs, buckets) with their last-used timestamps, owner tags, and cost data. Produce an orphan candidate list with estimated monthly savings. Do not delete anything — report and recommend only.",
-          "tool_set_id": "cloudops",
-          "max_turns": 20,
-          "max_tokens": 4096,
-          "temperature": 0.2,
-          "stream": false
-        },
-        "description": "Identifies unused or orphaned cloud resources. Runs on a weekly cron trigger."
+        "description": "Unified cloud operations agent for cost optimization, resource health monitoring, compliance auditing, and orphan resource detection."
       }
     ]
   }
