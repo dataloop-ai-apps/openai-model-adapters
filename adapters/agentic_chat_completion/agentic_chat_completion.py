@@ -2,8 +2,8 @@
 
 Model adapter with a tool-calling loop backed by Jarvis.
 LLM calls go through Jarvis (/api/v1/ai/chat/completions).
-Tools are fetched and executed via Jarvis MCP gateway
-(/api/v1/ai/mcps/{tool_set_id}).
+Tools are fetched and executed via the MCP protocol endpoint
+(/api/v1/ai/mcps/{tool_set_id}/mcp) using JSON-RPC 2.0.
 
 Configuration (on the model entity):
     tool_set_id   — Jarvis MCP tool set slug (e.g. "cloudops")
@@ -117,74 +117,89 @@ class AgenticChatCompletion(dl.BaseModelAdapter):
                 http_client=self.client._client,
             )
 
-    def _fetch_tools(self) -> list:
-        """Fetch tool schemas from Jarvis MCP gateway.
+    def _mcp_url(self) -> str:
+        """MCP protocol endpoint for the configured tool set."""
+        return f"{self.jarvis_url}/mcps/{self.tool_set_id}/mcp"
 
-        GET /api/v1/ai/mcps/{tool_set_id} → {"tools": [...]}
-        Returns OpenAI-compatible tool schema list.
+    def _mcp_call(self, method: str, params: dict = None, timeout: int = 30) -> dict:
+        """Send a JSON-RPC 2.0 request to the Jarvis MCP protocol endpoint."""
+        body = {"jsonrpc": "2.0", "id": 1, "method": method}
+        if params:
+            body["params"] = params
+        resp = requests.post(
+            self._mcp_url(),
+            json=body,
+            headers=_jarvis_auth_headers(),
+            timeout=timeout,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        if "error" in data:
+            raise RuntimeError(
+                f"MCP {method} error: {data['error'].get('message', data['error'])}"
+            )
+        return data.get("result", {})
+
+    def _fetch_tools(self) -> list:
+        """Fetch tool schemas via the MCP protocol endpoint (tools/list).
+
+        Returns OpenAI-compatible tool schema list, converted from the
+        MCP-native {name, description, inputSchema} shape.
         """
         if not self.tool_set_id:
             logger.warning("No tool set ID configured for agentic adapter")
             return []
-        url = f"{self.jarvis_url}/mcps/{self.tool_set_id}"
-        headers = _jarvis_auth_headers()
         try:
-            resp = requests.get(url, headers=headers, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-            tools = data.get("tools", [])
-            # Jarvis reports per-MCP failures and tool names configured on the
-            # tool set that the MCP no longer exposes, rather than dropping them
-            # silently. Surface them — otherwise the agent runs with a quietly
-            # reduced tool set.
-            for warning in data.get("warnings", []) or []:
-                logger.warning("Tool set '%s' warning: %s", self.tool_set_id, warning)
-            if not tools:
+            result = self._mcp_call("tools/list")
+            mcp_tools = result.get("tools", [])
+            if not mcp_tools:
                 logger.warning(
                     "Tool set '%s' returned no tools — the agent will run without tools",
                     self.tool_set_id,
                 )
-            logger.info("Fetched %d tools from tool set '%s': %s",
-                        len(tools), self.tool_set_id,
-                        [t.get("function", {}).get("name") for t in tools])
+            tools = [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": t["name"],
+                        "description": t.get("description", ""),
+                        "parameters": t.get("inputSchema", {}),
+                    },
+                }
+                for t in mcp_tools
+            ]
+            logger.info(
+                "Fetched %d tools from tool set '%s': %s",
+                len(tools),
+                self.tool_set_id,
+                [t["function"]["name"] for t in tools],
+            )
             return tools
         except Exception as exc:
-            logger.error("Failed to fetch tools from %s: %s", url, exc)
+            logger.error("Failed to fetch tools from %s: %s", self._mcp_url(), exc)
             return []
 
     def _call_tool(self, tool_name: str, arguments: str) -> str:
-        """Execute a tool call via Jarvis MCP gateway.
-
-        POST /api/v1/ai/mcps/{tool_set_id}
-        Body: {"tool": "<tool_name>", "arguments": {...}}
-        Returns the tool result as a string.
-        """
-        url = f"{self.jarvis_url}/mcps/{self.tool_set_id}"
-        headers = _jarvis_auth_headers()
-        headers["Content-Type"] = "application/json"
-
+        """Execute a tool call via the MCP protocol endpoint (tools/call)."""
         try:
             args = json.loads(arguments) if isinstance(arguments, str) else arguments
         except json.JSONDecodeError:
             logger.warning("Could not parse tool arguments for %s: %r", tool_name, arguments)
             args = {}
 
-        body = {"tool": tool_name, "arguments": args}
         try:
-            resp = requests.post(url, json=body, headers=headers, timeout=120)
-            resp.raise_for_status()
-            data = resp.json()
-            # MCP result format: {"result": {"content": [...]}}
-            result = data.get("result", data)
-            if isinstance(result, dict):
-                content = result.get("content", result)
-                if isinstance(content, list):
-                    return "\n".join(
-                        item.get("text", str(item)) if isinstance(item, dict) else str(item)
-                        for item in content
-                    )
-                return json.dumps(content)
-            return str(result)
+            result = self._mcp_call(
+                "tools/call",
+                params={"name": tool_name, "arguments": args},
+                timeout=120,
+            )
+            content = result.get("content", [])
+            if isinstance(content, list):
+                return "\n".join(
+                    item.get("text", str(item)) if isinstance(item, dict) else str(item)
+                    for item in content
+                )
+            return json.dumps(content) if isinstance(content, dict) else str(content)
         except Exception as exc:
             error_msg = f"[ERROR] Tool {tool_name} failed: {exc}"
             logger.error(error_msg)
