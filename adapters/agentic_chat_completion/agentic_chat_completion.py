@@ -104,7 +104,7 @@ class AgenticChatCompletion(dl.BaseModelAdapter):
 
         logger.info(
             "Loaded agentic adapter: model=%s, tool_set=%s, max_turns=%d, jarvis=%s",
-            self.model_name, self.tool_set_id, self.max_turns, jarvis_url,
+            self.model_name, self.tool_set_id, self.max_turns, self.jarvis_url,
         )
 
     def _refresh_token(self):
