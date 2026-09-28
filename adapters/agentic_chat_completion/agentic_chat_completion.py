@@ -101,6 +101,7 @@ class AgenticChatCompletion(dl.BaseModelAdapter):
         self.model_name = self.configuration.get("model_name", "openai/gpt-4o")
         self.max_tokens = self.configuration.get("max_tokens", NOT_GIVEN)
         self.temperature = self.configuration.get("temperature", NOT_GIVEN)
+        self.stream_response_enabled = self.configuration.get("stream_response", True)
 
         logger.info(
             "Loaded agentic adapter: model=%s, tool_set=%s, max_turns=%d, jarvis=%s",
@@ -205,14 +206,14 @@ class AgenticChatCompletion(dl.BaseModelAdapter):
             logger.error(error_msg)
             return error_msg
 
-    def _call_model(self, messages, tools):
+    def _call_model(self, messages, tools, stream=True):
         """Single LLM call to Jarvis. Returns the ChatCompletion response."""
         return self.client.chat.completions.create(
             messages=messages,
             tools=tools if tools else NOT_GIVEN,
             tool_choice="auto" if tools else NOT_GIVEN,
             model=self.model_name,
-            stream=False,
+            stream=stream,
             max_tokens=self.max_tokens,
             temperature=self.temperature,
         )
@@ -284,31 +285,33 @@ class AgenticChatCompletion(dl.BaseModelAdapter):
                     messages = _trim_old_tool_results(messages)
                 else:
                     # Final answer
-                    final_content = choice.message.content or ""
-                    logger.info("Agent finished after %d turn(s)", turn + 1)
+                    model_info = {
+                        "name": model_name,
+                        "model_id": self.model_entity.id,
+                        "confidence": 1.0,
+                    }
+                    if self.stream_response_enabled:
+                        # Stream via LLMTrace so the UI displays partial results
+                        logger.info("Agent finished after %d turn(s), streaming final answer", turn + 1)
+                        llm_stream = self._call_model(messages, tools=None, stream=True)
+                        final_content = trace.stream_response(
+                            stream=(
+                                chunk.choices[0].delta.content
+                                for chunk in llm_stream
+                                if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content
+                            ),
+                            model_info=model_info,
+                        )
+                    else:
+                        final_content = choice.message.content or ""
+                        trace.add_message(dl.LLMMessage(role="assistant", content=final_content))
+                        trace.update()
+                    logger.info("Agent finished after %d turn(s), response %d chars", turn + 1, len(final_content))
                     break
             else:
                 logger.warning("Agent reached max_turns (%d) without final answer", self.max_turns)
                 final_content = "Agent reached maximum turns without producing a final answer."
-
-            # Append final assistant message to the trace and update the item
-            trace.add_message(dl.LLMMessage(role="assistant", content=final_content))
-            trace.update()
-            logger.info("Updated trace item %s with assistant response (%d chars)", item.id, len(final_content))
-
-            # Keep annotation as backup for compatibility
-            prompt_id = str(sum(1 for m in messages if m.get("role") == "user"))
-            builder = item.annotations.builder()
-            builder.add(
-                annotation_definition=dl.FreeText(text=final_content),
-                prompt_id=prompt_id,
-                model_info={
-                    "name": model_name,
-                    "model_id": self.model_entity.id,
-                    "confidence": 1.0,
-                },
-            )
-            item.annotations.upload(builder)
-            logger.info("Uploaded response annotation as backup (promptId=%s)", prompt_id)
+                trace.add_message(dl.LLMMessage(role="assistant", content=final_content))
+                trace.update()
 
         return []

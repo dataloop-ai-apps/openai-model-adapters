@@ -146,7 +146,7 @@
           "max_turns": 20,
           "max_tokens": 4096,
           "temperature": 0.2,
-          "stream": false
+          "stream": true
         },
         "description": "Custom agent model for tool-calling and agentic workflows."
       }
