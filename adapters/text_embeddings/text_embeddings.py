@@ -65,6 +65,12 @@ class TextEmbeddings(dl.BaseModelAdapter):
                     )
 
             embedding = self.call_model(text=text)
+            expected = self.model_entity.configuration.get('embeddings_size')
+            if expected is not None and len(embedding) != expected:
+                raise ValueError(
+                    f"Embedding dimension mismatch: model returned {len(embedding)}, "
+                    f"configured embeddings_size is {expected}. "
+                )
             logger.info("Extracted embeddings for text %s: %s", item, embedding)
             embeddings.append(embedding)
 
