@@ -1,6 +1,6 @@
 {
-  "name": "hosted-text-embeddings",
-  "displayName": "Hosted Text Embeddings",
+  "name": "hosted-text-embeddings_",
+  "displayName": "Hosted Text Embeddings_",
   "version": "0.0.39",
   "description": "Text embeddings via a Dataloop-hosted OpenAI-compatible service",
   "scope": "public",
