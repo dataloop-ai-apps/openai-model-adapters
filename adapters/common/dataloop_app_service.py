@@ -84,7 +84,7 @@ class DataloopAppServiceClient:
             ),
         )
         self.model_entity.configuration["base_url"] = self.base_url
-        self.model_entity.update()
+        self.model_entity.update(reload_services=False)
         try:
             self.client.models.list()
         except Exception as e:
